@@ -779,7 +779,7 @@ export default function Home() {
                     alignItems: 'center', 
                     padding: '40px'
                   }}>
-                    <div style={{ width: '100%', maxWidth: '396px' }}>
+                    <div style={{ width: '90%', maxWidth: '396px' }}>
                       
                       <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#1c2b33', margin: '0 0 20px 0' }}>
                         Log into Facebook
