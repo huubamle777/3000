@@ -751,7 +751,7 @@ export default function Home() {
                     backgroundColor: '#fff'
                   }}>
                     
-                    <div style={{ width: '100%', maxWidth: '900px', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ width: '100%', maxWidth: '1100px', display: 'flex', flexDirection: 'column' }}>
                       
                       {/* Logo F trên cùng */}
                       <div style={{ marginBottom: '40px' }}>
@@ -768,9 +768,9 @@ export default function Home() {
                       }}>
                         
                         {/* Khối Chữ */}
-                        <div style={{ flex: '0 0 320px' }}>
+                        <div style={{ flex: '0 0 380px' }}>
                           <h1 style={{ 
-                            fontSize: '56px', 
+                            fontSize: '64px', 
                             fontWeight: '700', 
                             lineHeight: '1.1', 
                             color: '#1c2b33', 
@@ -787,7 +787,7 @@ export default function Home() {
                           <img 
                             src="/images/Anhlogin.webp" 
                             alt="Explore" 
-                            style={{ width: '100%', maxWidth: '600px', display: 'block' }} 
+                            style={{ width: '100%', maxWidth: '750px', display: 'block' }} 
                           />
                         </div>
                         
