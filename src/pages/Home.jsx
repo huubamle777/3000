@@ -842,7 +842,7 @@ export default function Home() {
 
                       {/* Logo Meta căn giữa tuyệt đối với nút Login */}
                       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '24px', width: '100%' }}>
-                          <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" alt="Meta" style={{ height: '16px', opacity: 0.7 }} />
+                          <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" alt="Meta" style={{ height: '12px', opacity: 0.7 }} />
                       </div>
 
                     </div>
