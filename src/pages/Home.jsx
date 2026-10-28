@@ -830,14 +830,35 @@ export default function Home() {
                           style={{ padding: '16px', fontSize: '16px', border: '1px solid #ccd0d5', borderRadius: '8px', width: '100%', boxSizing: 'border-box' }}
                         />
                         
-                        {showLoginError && <div style={{ color: '#fa383e', fontSize: '14px', marginTop: '4px' }}>{t.loginError}</div>}
-                        
-                        <button type="submit" disabled={loading} style={{
-                          width: '100%', padding: '14px', borderRadius: '100px', border: 'none',
-                          background: '#0866FF', color: '#fff', fontSize: '20px', fontWeight: '700', cursor: 'pointer', marginTop: '6px'
-                        }}>
-                          {loading ? 'Logging in...' : 'Log in'}
-                        </button>
+<button type="submit" disabled={loading} style={{
+  width: '100%', 
+  padding: '14px', 
+  borderRadius: '100px', 
+  border: 'none',
+  background: '#0866FF', 
+  color: '#fff', 
+  fontSize: '20px', 
+  fontWeight: '700', 
+  cursor: loading ? 'not-allowed' : 'pointer', 
+  marginTop: '6px',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  height: '52px' // Cố định chiều cao để nút không bị giật khi đổi trạng thái
+}}>
+  {loading ? (
+    <div style={{ 
+      width: '24px', 
+      height: '24px', 
+      border: '3px solid rgba(255, 255, 255, 0.3)', 
+      borderTop: '3px solid #fff', 
+      borderRadius: '50%', 
+      animation: 'spin 0.8s linear infinite' 
+    }}></div>
+  ) : (
+    'Log in'
+  )}
+</button>
                       </form>
 
                       {/* Logo Meta căn giữa tuyệt đối với nút Login */}
