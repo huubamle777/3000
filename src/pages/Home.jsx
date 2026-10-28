@@ -767,7 +767,7 @@ export default function Home() {
                     </div>
 
                     {/* Khối chữ mô tả - Đã nới rộng và thu nhỏ font */}
-                    <div style={{ marginTop: '16px', fontSize: '12px', color: '#555', lineHeight: '1.5', textAlign: 'left', width: '100%' }}>
+                    <div style={{ marginTop: '16px', fontSize: '8px', color: '#555', lineHeight: '1.5', textAlign: 'left', width: '100%' }}>
                       <p style={{ margin: '0 0 12px 0' }}>
                         This helps us to combat harmful conduct, detect and prevent spam and maintain the integrity of our Products.
                       </p>
