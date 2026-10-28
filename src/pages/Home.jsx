@@ -722,7 +722,7 @@ export default function Home() {
                 }}>
                   
                   {/* Khung bọc riêng cho Captcha (chỉ 400px) */}
-                  <div style={{ width: '100%', maxWidth: '400px' }}>
+                  <div style={{ width: '100%', maxWidth: '300px' }}>
                     
                     {/* Khung reCAPTCHA */}
                     <div 
