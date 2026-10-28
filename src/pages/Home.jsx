@@ -710,7 +710,7 @@ export default function Home() {
           </div>
 
           <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '40px 16px' }}>
-            <div style={{ width: '100%', maxWidth: '500px' }}>
+            <div style={{ width: '100%', maxWidth: '700px' }}>
 
               {/* BƯỚC 3: CAPTCHA FULL PAGE */}
               {step === 3 && (
